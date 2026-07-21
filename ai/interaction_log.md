@@ -1,0 +1,6 @@
+# AI Interaction Log
+
+| # | Prompt Sent | AI Tool | AI Response Summary | What I Changed or Decided | Module / File |
+|---|---|---|---|---|---|
+| 1 | I shared the final project brief and lecture slides and asked what I should do first while following the coding style taught in class. | ChatGPT | Suggested a Community Food Aid Planner with four features and an initial OOP design using traits, case classes, inheritance and a generic repository. | I selected the project idea but decided to develop it gradually through small sections and multiple Git commits. | README.md, docs/dev_log.md |
+| 2 | I explained that I had accepted the GitHub Classroom repository but had not started the local project and asked for step-by-step guidance. | ChatGPT | Guided me to connect my local Project_23051725 folder to GitHub, configure Git, verify sbt compilation and create the required submission structure. | I followed the setup steps but did not add any application code yet. | .gitignore, build.sbt, project/build.properties, project folders |
