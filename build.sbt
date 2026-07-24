@@ -1,11 +1,19 @@
-scalaVersion := "3.8.4"
+ThisBuild / version := "0.1.0-SNAPSHOT"
+ThisBuild / scalaVersion := "3.8.4"
 
-lazy val root = rootProject
+lazy val root = (project in file("."))
   .settings(
     name := "Project_23051725",
-    libraryDependencies ++= Seq(
-      //You can add library dependencies here, for example,
-      //"org.scalatest" %% "scalatest" % "3.2.19" % Test,
-      //"org.scalameta" %% "munit" % "1.2.3" % Test
-    )
+
+    libraryDependencies +=
+      "org.scalafx" %% "scalafx" % "21.0.0-R32",
+
+    scalacOptions ++= Seq(
+      "-unchecked",
+      "-deprecation",
+      "-feature",
+      "-Wunused:all"
+    ),
+
+    fork := true
   )
