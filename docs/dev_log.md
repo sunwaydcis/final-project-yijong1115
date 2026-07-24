@@ -16,3 +16,7 @@
 - Changed the initial project scope from Community Food Aid Planner to Food Pantry Inventory & Demand.
 - Confirmed the final project title as Food Pantry Inventory and Demand Management System.
 - Refined the four planned features to focus on inventory, household requests, expiry monitoring and distribution planning.
+- Added ScalaFX 21 and embedded Apache Derby dependencies.
+- Created the initial `MainApp` object using `JFXApp3`.
+- Added a `PrimaryStage`, `Scene`, `BorderPane` and centre label.
+- Confirmed that the application compiled and opened successfully.
