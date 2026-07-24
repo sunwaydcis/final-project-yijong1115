@@ -2,8 +2,8 @@
 
 **Student name:** Gan Yi Jong  
 **Student ID:** 23051725  
-**Project title:** Community Food Aid Planner  
-**Theme:** SDG 1 — No Poverty / Sub-domain: Community Food Assistance  
+**Project title:** Food Pantry Inventory and Demand Management System  
+**Theme:** SDG 1 — No Poverty / Sub-domain: Food Pantry Inventory & Demand  
 **Date submitted:** To be completed
 
 ## File Checklist

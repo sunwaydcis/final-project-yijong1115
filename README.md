@@ -1,4 +1,4 @@
-# Community Food Aid Planner
+# Food Pantry Inventory and Demand Management System
 
 ## Student Information
 
@@ -6,20 +6,19 @@
 **Student ID:** 23051725  
 **Module:** PRG2104 Object-Oriented Programming  
 **Theme:** SDG 1 — No Poverty  
-**Sub-domain:** Community Food Assistance
+**Sub-domain:** Food Pantry Inventory & Demand
 
 ## Project Summary
+Food Pantry Inventory and Demand Management System is a standalone ScalaFX desktop application designed to help food pantry coordinators manage donated food and household demand.
 
-Community Food Aid Planner is a standalone ScalaFX desktop application designed to help community organisations manage food assistance for low-income households.
-
-The application will allow users to register households, manage donated food inventory, record aid requests and prepare food distribution plans.
+The system will allow users to record food donations, monitor stock and expiry dates, manage household food requests, and prepare daily distribution plans that reduce food waste.
 
 ## Planned Features
 
-1. Household registration and eligibility information
-2. Food inventory management
-3. Aid request recording and prioritisation
-4. Distribution planning and dashboard reporting
+1. Donated food inventory management
+2. Household and food request management
+3. Expiry and low-stock monitoring
+4. Daily distribution planning and reporting
 
 ## Technology
 
