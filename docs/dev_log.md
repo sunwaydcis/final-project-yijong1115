@@ -60,4 +60,9 @@
 - Used `Option` for nullable expiry dates and `Either` for unsupported or invalid records.
 - Removed a hidden UTF-8 BOM character created by PowerShell.
 - Confirmed the project compiled successfully.
+- Added `FoodItemValidator` for immutable domain validation.
+- Checked required ID, name, category and unit fields.
+- Added quantity validation to require a value greater than zero.
+- Used `Either[List[String], FoodItem]` to return all validation errors safely.
+- Confirmed the project compiled successfully.
 
