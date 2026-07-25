@@ -86,4 +86,9 @@
 - Confirmed the no-selection warning appears correctly.
 - Added and deleted a temporary shelf-stable item successfully.
 - Confirmed that other persisted records remained unchanged.
+- Added quantity updating for the selected inventory item.
+- Used safe whole-number parsing and positive-quantity validation.
+- Used subtype-specific `copy` operations to preserve immutable domain objects.
+- Updated `Fresh Milk` from quantity 12 to 20.
+- Restarted the application and confirmed that the updated quantity remained persisted.
 
