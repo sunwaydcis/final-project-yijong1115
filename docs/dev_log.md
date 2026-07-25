@@ -41,3 +41,8 @@
 - Added a generic `withConnection[T]` method using `Try`.
 - Ensured JDBC connections are closed using `try` and `finally`.
 - Confirmed the project compiled successfully.
+
+## 2026-07-25
+- Tested the embedded Derby connection and received `Success(true)`.
+- Confirmed that Derby created the persistent database under `data/foodPantryDB`.
+- Updated `.gitignore` so generated Derby database files and `derby.log` are not committed.

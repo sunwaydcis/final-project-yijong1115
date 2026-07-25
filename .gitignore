@@ -17,3 +17,7 @@ Thumbs.db
 # Temporary files
 *.log
 *.tmp
+
+# Embedded Derby runtime files
+/data/foodPantryDB/
+/derby.log
