@@ -20,3 +20,7 @@
 - Created the initial `MainApp` object using `JFXApp3`.
 - Added a `PrimaryStage`, `Scene`, `BorderPane` and centre label.
 - Confirmed that the application compiled and opened successfully.
+- Added four placeholder screens: Dashboard, Food Inventory, Household Requests and Distribution Plan.
+- Added sidebar navigation using ScalaFX buttons and `onAction = handle { ... }`.
+- Tested all four navigation buttons successfully.
+- Added targeted compiler-warning settings for the ScalaFX `handle` helper.

@@ -14,7 +14,9 @@ lazy val root = (project in file("."))
       "-unchecked",
       "-deprecation",
       "-feature",
-      "-Wunused:all"
+      "-Wunused:all",
+      "-Wconf:msg=Implicit parameters should be provided with a `using` clause:s",
+      "-Wconf:msg=method handle in trait EventIncludes is deprecated:s"
     ),
 
     fork := true
