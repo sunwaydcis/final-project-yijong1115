@@ -65,4 +65,11 @@
 - Added quantity validation to require a value greater than zero.
 - Used `Either[List[String], FoodItem]` to return all validation errors safely.
 - Confirmed the project compiled successfully.
+- Added `DerbyFoodItemRepository` implementing `Repository[FoodItem]`.
+- Added database operations to create, update, delete and retrieve food items.
+- Used prepared statements and safely closed JDBC resources.
+- Integrated `FoodItemValidator` and `FoodItemMapper`.
+- Used subtype pattern matching for perishable and shelf-stable food.
+- Confirmed the project compiled successfully.
+- Ran a forked repository smoke test and confirmed add, find, update and delete operations all succeeded.
 
