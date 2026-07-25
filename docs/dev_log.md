@@ -55,3 +55,9 @@
 - Encountered a Derby class-loader error while testing through `sbt console`.
 - Reviewed the stack trace and moved initialization testing to the forked ScalaFX application.
 - Confirmed that the database initialized successfully and the application opened normally.
+- Added `FoodItemMapper` to convert Derby result rows into `FoodItem` subtypes.
+- Used pattern matching for `PERISHABLE` and `SHELF_STABLE` item types.
+- Used `Option` for nullable expiry dates and `Either` for unsupported or invalid records.
+- Removed a hidden UTF-8 BOM character created by PowerShell.
+- Confirmed the project compiled successfully.
+
