@@ -92,3 +92,10 @@
 - Updated `Fresh Milk` from quantity 12 to 20.
 - Restarted the application and confirmed that the updated quantity remained persisted.
 
+## 2026-07-26
+
+- Added the immutable `InventoryAlert` hierarchy.
+- Added `LowStockAlert` and `ExpiryAlert` case-class subtypes.
+- Added subtype-specific alert messages for low inventory and approaching expiry.
+- Confirmed the project compiled successfully.
+
