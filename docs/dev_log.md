@@ -72,4 +72,11 @@
 - Used subtype pattern matching for perishable and shelf-stable food.
 - Confirmed the project compiled successfully.
 - Ran a forked repository smoke test and confirmed add, find, update and delete operations all succeeded.
+- Added a read-only ScalaFX `InventoryView`.
+- Displayed persisted food items using `TableView` and `ObservableBuffer`.
+- Added a refresh button and repository-loading status message.
+- Used the generic `Repository[FoodItem]` contract instead of depending directly on Derby.
+- Confirmed the project compiled successfully.
+- Connected `InventoryView` to `MainApp` and confirmed that the empty Derby inventory loaded as `0 food item(s)` without errors.
+
 

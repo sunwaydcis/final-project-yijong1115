@@ -8,6 +8,8 @@ import scalafx.scene.control.{Button, Label}
 import scalafx.scene.layout.{BorderPane, VBox}
 import foodpantry.database.DatabaseInitializer
 import scala.util.{Failure, Success}
+import foodpantry.repository.DerbyFoodItemRepository
+import foodpantry.ui.InventoryView
 
 object MainApp extends JFXApp3:
 
@@ -32,13 +34,11 @@ object MainApp extends JFXApp3:
         new Label("Food pantry summary will be displayed here.")
       )
 
-    val inventoryPane = new VBox:
-      spacing = 10
-      padding = Insets(20)
-      children = Seq(
-        new Label("Food Inventory"),
-        new Label("Donated food records will be managed here.")
-      )
+    val foodItemRepository =
+      new DerbyFoodItemRepository
+
+    val inventoryPane =
+      new InventoryView(foodItemRepository)
 
     val requestsPane = new VBox:
       spacing = 10
