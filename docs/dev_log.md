@@ -78,5 +78,8 @@
 - Used the generic `Repository[FoodItem]` contract instead of depending directly on Derby.
 - Confirmed the project compiled successfully.
 - Connected `InventoryView` to `MainApp` and confirmed that the empty Derby inventory loaded as `0 food item(s)` without errors.
-
+- Added `FoodItemForm` for creating perishable and shelf-stable food records.
+- Connected the form to the inventory table and Derby repository.
+- Successfully added `Fresh Milk` and automatically refreshed the table.
+- Restarted the application and confirmed that the saved record remained in the embedded database.
 

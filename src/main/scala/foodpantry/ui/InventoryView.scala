@@ -47,7 +47,11 @@ class InventoryView(
               .getOrElse("-")
         )
       )
-
+  private val foodItemForm =
+    new FoodItemForm(
+      repository,
+      () => loadItems()
+    )
   private val refreshButton =
     new Button("Refresh Inventory"):
       onAction = handle {
@@ -58,6 +62,7 @@ class InventoryView(
   padding = Insets(20)
   children = Seq(
     new Label("Food Inventory"),
+    foodItemForm,
     refreshButton,
     inventoryTable,
     statusLabel
