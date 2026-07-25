@@ -36,3 +36,8 @@
 - Added add, update, delete, find-by-ID and find-all operations.
 - Used `Try`, `Option` and immutable `List` return types for safe error handling.
 - Confirmed the project compiled successfully.
+- Added the embedded Derby `DatabaseManager`.
+- Encapsulated the database URL using a private value.
+- Added a generic `withConnection[T]` method using `Try`.
+- Ensured JDBC connections are closed using `try` and `finally`.
+- Confirmed the project compiled successfully.
