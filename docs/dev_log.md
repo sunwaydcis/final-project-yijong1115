@@ -27,3 +27,8 @@
 - Added the reusable `Entity` trait with an abstract `id`.
 - Prepared the model layer for future generic repositories and domain classes.
 - Confirmed the project compiled successfully after adding the trait.
+- Added the immutable `FoodItem` hierarchy.
+- Added `PerishableFood` and `ShelfStableFood` case-class subtypes.
+- Used `Option[LocalDate]` to represent optional expiry information safely.
+- Added overridden storage instructions to demonstrate subtype polymorphism.
+- Confirmed the project compiled successfully.
