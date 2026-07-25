@@ -82,4 +82,8 @@
 - Connected the form to the inventory table and Derby repository.
 - Successfully added `Fresh Milk` and automatically refreshed the table.
 - Restarted the application and confirmed that the saved record remained in the embedded database.
+- Added deletion for the selected inventory record.
+- Confirmed the no-selection warning appears correctly.
+- Added and deleted a temporary shelf-stable item successfully.
+- Confirmed that other persisted records remained unchanged.
 

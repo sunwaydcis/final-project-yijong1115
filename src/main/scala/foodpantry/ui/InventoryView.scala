@@ -57,18 +57,48 @@ class InventoryView(
       onAction = handle {
         loadItems()
       }
-
+  // ai-assisted: #16
+  // why: AI helped add safe deletion for the currently selected inventory record.
+  private val deleteButton =
+    new Button("Delete Selected"):
+      onAction = handle {
+        deleteSelectedItem()
+      }
   spacing = 10
   padding = Insets(20)
   children = Seq(
     new Label("Food Inventory"),
     foodItemForm,
     refreshButton,
+    deleteButton,
     inventoryTable,
     statusLabel
   )
 
   loadItems()
+  
+  private def deleteSelectedItem(): Unit =
+    Option(
+      inventoryTable.selectionModel().selectedItem.value
+    ) match
+      case Some(foodItem) =>
+        repository.delete(foodItem.id) match
+          case Success(true) =>
+            statusLabel.text =
+              s"${foodItem.name} was deleted successfully."
+            loadItems()
+
+          case Success(false) =>
+            statusLabel.text =
+              "The selected food item was not found."
+
+          case Failure(exception) =>
+            statusLabel.text =
+              s"Unable to delete item: ${exception.getMessage}"
+
+      case None =>
+        statusLabel.text =
+          "Select a food item before deleting."
 
   private def textColumn(
       heading: String,
