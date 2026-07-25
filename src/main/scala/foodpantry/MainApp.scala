@@ -6,12 +6,24 @@ import scalafx.geometry.Insets
 import scalafx.scene.Scene
 import scalafx.scene.control.{Button, Label}
 import scalafx.scene.layout.{BorderPane, VBox}
+import foodpantry.database.DatabaseInitializer
+import scala.util.{Failure, Success}
 
 object MainApp extends JFXApp3:
 
   override def start(): Unit =
-  // ai-assisted: #5
-  // why: AI helped structure four placeholder panes and button navigation using ScalaFX.
+    // ai-assisted: #10
+    // why: AI suggested testing schema initialization from the normal forked application.
+    DatabaseInitializer.initialize() match
+      case Success(_) =>
+        println("Database initialized successfully.")
+      case Failure(exception) =>
+        println(
+          s"Database initialization failed: ${exception.getMessage}"
+        )
+
+    // ai-assisted: #5
+    // why: AI helped structure four placeholder panes and button navigation using ScalaFX.
     val dashboardPane = new VBox:
       spacing = 10
       padding = Insets(20)

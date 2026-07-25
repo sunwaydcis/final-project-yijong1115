@@ -46,3 +46,12 @@
 - Tested the embedded Derby connection and received `Success(true)`.
 - Confirmed that Derby created the persistent database under `data/foodPantryDB`.
 - Updated `.gitignore` so generated Derby database files and `derby.log` are not committed.
+- Added an idempotent `DatabaseInitializer`.
+- Added the `FOOD_ITEMS` Derby table schema.
+- Used database metadata to avoid recreating an existing table.
+- Ensured JDBC statements and result sets are closed safely.
+- Confirmed the project compiled successfully.
+- Added the `FOOD_ITEMS` Derby schema initializer.
+- Encountered a Derby class-loader error while testing through `sbt console`.
+- Reviewed the stack trace and moved initialization testing to the forked ScalaFX application.
+- Confirmed that the database initialized successfully and the application opened normally.
