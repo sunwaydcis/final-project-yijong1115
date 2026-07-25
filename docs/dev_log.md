@@ -24,3 +24,6 @@
 - Added sidebar navigation using ScalaFX buttons and `onAction = handle { ... }`.
 - Tested all four navigation buttons successfully.
 - Added targeted compiler-warning settings for the ScalaFX `handle` helper.
+- Added the reusable `Entity` trait with an abstract `id`.
+- Prepared the model layer for future generic repositories and domain classes.
+- Confirmed the project compiled successfully after adding the trait.
