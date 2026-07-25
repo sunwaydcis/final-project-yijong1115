@@ -32,3 +32,7 @@
 - Used `Option[LocalDate]` to represent optional expiry information safely.
 - Added overridden storage instructions to demonstrate subtype polymorphism.
 - Confirmed the project compiled successfully.
+- Added the generic `Repository[T <: Entity]` contract.
+- Added add, update, delete, find-by-ID and find-all operations.
+- Used `Try`, `Option` and immutable `List` return types for safe error handling.
+- Confirmed the project compiled successfully.
