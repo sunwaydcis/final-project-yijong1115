@@ -1,7 +1,12 @@
 package foodpantry.ui
 
-import foodpantry.model.DistributionPlan
+import foodpantry.model.{
+  DistributionPlan,
+  FoodItem,
+  HouseholdRequest
+}
 import foodpantry.repository.Repository
+import foodpantry.service.DistributionPlanningService
 
 import scalafx.Includes.*
 import scalafx.beans.property.StringProperty
@@ -20,7 +25,14 @@ import scala.util.{Failure, Success}
 // ai-assisted: #36
 // why: AI helped build a ScalaFX distribution-plan table using the generic repository.
 class DistributionPlanView(
-    private val repository: Repository[DistributionPlan]
+    private val distributionRepository:
+      Repository[DistributionPlan],
+    private val requestRepository:
+      Repository[HouseholdRequest],
+    private val foodItemRepository:
+      Repository[FoodItem],
+    private val planningService:
+      DistributionPlanningService
 ) extends VBox:
 
   private val distributionPlans =
@@ -31,7 +43,7 @@ class DistributionPlanView(
 
   private val distributionTable =
     new TableView[DistributionPlan](distributionPlans):
-      prefHeight = 470
+      prefHeight = 400
       columns ++= List(
         textColumn(
           "Household",
@@ -65,6 +77,17 @@ class DistributionPlanView(
         )
       )
 
+  // ai-assisted: #38
+  // why: AI helped connect plan creation to automatic table refreshing.
+  private val distributionPlanForm =
+    new DistributionPlanForm(
+      requestRepository,
+      foodItemRepository,
+      distributionRepository,
+      planningService,
+      () => loadPlans()
+    )
+
   private val refreshButton =
     new Button("Refresh Distribution Plans"):
       onAction = handle {
@@ -76,6 +99,7 @@ class DistributionPlanView(
 
   children = Seq(
     new Label("Daily Distribution Plans"),
+    distributionPlanForm,
     refreshButton,
     distributionTable,
     statusLabel
@@ -95,7 +119,7 @@ class DistributionPlanView(
         )
 
   private def loadPlans(): Unit =
-    repository.findAll() match
+    distributionRepository.findAll() match
       case Success(plans) =>
         distributionPlans.clear()
         distributionPlans ++= plans

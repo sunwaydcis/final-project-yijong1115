@@ -2,12 +2,17 @@ package foodpantry
 
 import foodpantry.database.DatabaseInitializer
 import foodpantry.repository.{
+  DerbyDistributionPlanRepository,
   DerbyFoodItemRepository,
   DerbyHouseholdRequestRepository
 }
-import foodpantry.service.InventoryMonitoringService
+import foodpantry.service.{
+  DistributionPlanningService,
+  InventoryMonitoringService
+}
 import foodpantry.ui.{
   DashboardView,
+  DistributionPlanView,
   HouseholdRequestView,
   InventoryView
 }
@@ -39,12 +44,20 @@ object MainApp extends JFXApp3:
       new DerbyFoodItemRepository
 
     // ai-assisted: #28
-    // why: AI helped connect the persistent household-request feature to the main navigation.
+    // why: AI helped connect the persistent household-request feature to navigation.
     val householdRequestRepository =
       new DerbyHouseholdRequestRepository
 
+    // ai-assisted: #39
+    // why: AI helped connect the persistent distribution-planning feature to navigation.
+    val distributionRepository =
+      new DerbyDistributionPlanRepository
+
     val monitoringService =
       new InventoryMonitoringService
+
+    val distributionPlanningService =
+      new DistributionPlanningService
 
     val dashboardPane =
       new DashboardView(
@@ -60,14 +73,12 @@ object MainApp extends JFXApp3:
         householdRequestRepository
       )
 
-    val distributionPane = new VBox:
-      spacing = 10
-      padding = Insets(20)
-      children = Seq(
-        new Label("Distribution Plan"),
-        new Label(
-          "Daily food distribution plans will be prepared here."
-        )
+    val distributionPane =
+      new DistributionPlanView(
+        distributionRepository,
+        householdRequestRepository,
+        foodItemRepository,
+        distributionPlanningService
       )
 
     val rootPane =
