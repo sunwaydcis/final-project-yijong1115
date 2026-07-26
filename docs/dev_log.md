@@ -162,4 +162,10 @@
 - Used `Option`, `Either`, pattern matching and a `for` comprehension for safe mapping.
 - Added descriptive handling for missing dates and unsupported statuses.
 - Confirmed the project compiled successfully.
+- Added `DistributionPlanValidator`.
+- Checked required household-request and food-item references.
+- Added validation for household name, food-item name and allocated unit.
+- Required allocated quantity to be greater than zero.
+- Used `Either[List[String], DistributionPlan]` to return all validation errors safely.
+- Confirmed the project compiled successfully.
 
