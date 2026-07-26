@@ -125,4 +125,9 @@
 - Added positive-value validation for household size and requested quantity.
 - Used `Either[List[String], HouseholdRequest]` to return all validation errors safely.
 - Confirmed the project compiled successfully.
+- Added `DerbyHouseholdRequestRepository`.
+- Implemented add, update, delete, find-by-ID and find-all operations.
+- Integrated household-request validation and result-set mapping.
+- Used prepared statements, `Try` and immutable `List` results.
+- Confirmed the project compiled successfully.
 
