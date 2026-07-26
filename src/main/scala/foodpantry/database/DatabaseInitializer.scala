@@ -14,10 +14,14 @@ object DatabaseInitializer:
   private val householdRequestsTableName =
     "HOUSEHOLD_REQUESTS"
 
+  private val distributionPlansTableName =
+    "DISTRIBUTION_PLANS"
+
   def initialize(): Try[Unit] =
     DatabaseManager.withConnection: connection =>
       createFoodItemsTable(connection)
       createHouseholdRequestsTable(connection)
+      createDistributionPlansTable(connection)
 
   private def createFoodItemsTable(
       connection: Connection
@@ -64,6 +68,37 @@ object DatabaseInitializer:
             |  REQUESTED_CATEGORY VARCHAR(50) NOT NULL,
             |  REQUESTED_QUANTITY INT NOT NULL,
             |  REQUEST_DATE DATE NOT NULL,
+            |  STATUS VARCHAR(20) NOT NULL
+            |)
+            |""".stripMargin
+        )
+      finally
+        statement.close()
+
+  // ai-assisted: #31
+  // why: AI helped extend the initializer with persistent distribution plans.
+  private def createDistributionPlansTable(
+      connection: Connection
+  ): Unit =
+    if !tableExists(
+        connection,
+        distributionPlansTableName
+      )
+    then
+      val statement = connection.createStatement()
+
+      try
+        statement.executeUpdate(
+          """
+            |CREATE TABLE DISTRIBUTION_PLANS (
+            |  ID VARCHAR(36) PRIMARY KEY,
+            |  HOUSEHOLD_REQUEST_ID VARCHAR(36) NOT NULL,
+            |  HOUSEHOLD_NAME VARCHAR(100) NOT NULL,
+            |  FOOD_ITEM_ID VARCHAR(36) NOT NULL,
+            |  FOOD_ITEM_NAME VARCHAR(100) NOT NULL,
+            |  ALLOCATED_QUANTITY INT NOT NULL,
+            |  ALLOCATED_UNIT VARCHAR(30) NOT NULL,
+            |  DISTRIBUTION_DATE DATE NOT NULL,
             |  STATUS VARCHAR(20) NOT NULL
             |)
             |""".stripMargin

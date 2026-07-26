@@ -152,4 +152,9 @@
 - Linked each plan to a household request and inventory food item.
 - Stored the allocated quantity, unit and distribution date.
 - Confirmed the project compiled successfully.
+- Extended `DatabaseInitializer` with the persistent `DISTRIBUTION_PLANS` table.
+- Stored linked household-request and food-item details.
+- Added allocated quantity, unit, distribution date and status fields.
+- Kept table creation idempotent using Derby metadata checks.
+- Confirmed the project compiled successfully.
 
