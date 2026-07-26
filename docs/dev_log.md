@@ -133,4 +133,9 @@
 - Ran a forked household-request repository smoke test.
 - Confirmed add, find, status update and delete operations all succeeded.
 - Removed the temporary smoke-test source file after verification.
+- Added the read-only `HouseholdRequestView`.
+- Displayed household details, requested food, request date and status using a ScalaFX table.
+- Loaded requests through the generic `Repository[HouseholdRequest]` contract.
+- Added refresh and database-failure status handling.
+- Confirmed the project compiled successfully.
 
