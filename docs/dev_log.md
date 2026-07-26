@@ -138,4 +138,8 @@
 - Loaded requests through the generic `Repository[HouseholdRequest]` contract.
 - Added refresh and database-failure status handling.
 - Confirmed the project compiled successfully.
+- Added `HouseholdRequestForm` and connected it to `HouseholdRequestView`.
+- Connected the persistent household-request feature to the main navigation.
+- Successfully added `Test Family` with `Pending` status.
+- Restarted the application and confirmed that the household request remained in Derby.
 

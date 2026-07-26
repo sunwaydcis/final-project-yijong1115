@@ -65,6 +65,12 @@ class HouseholdRequestView(
         )
       )
 
+  private val householdRequestForm =
+    new HouseholdRequestForm(
+      repository,
+      () => loadRequests()
+    )
+
   private val refreshButton =
     new Button("Refresh Requests"):
       onAction = handle {
@@ -76,6 +82,7 @@ class HouseholdRequestView(
 
   children = Seq(
     new Label("Household Food Requests"),
+    householdRequestForm,
     refreshButton,
     requestTable,
     statusLabel
