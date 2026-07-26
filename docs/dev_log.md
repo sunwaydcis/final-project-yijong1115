@@ -176,4 +176,9 @@
 - Ran a forked distribution-plan repository smoke test.
 - Confirmed add, find, status update and delete operations all succeeded.
 - Removed the temporary smoke-test source file after verification.
+- Added `DistributionPlanningService`.
+- Added validation for stock availability, requested quantity and matching food category.
+- Prevented new plans for fulfilled requests and past distribution dates.
+- Used `Either[List[String], DistributionPlan]` to return all planning errors safely.
+- Confirmed the project compiled successfully.
 
