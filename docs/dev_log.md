@@ -142,4 +142,9 @@
 - Connected the persistent household-request feature to the main navigation.
 - Successfully added `Test Family` with `Pending` status.
 - Restarted the application and confirmed that the household request remained in Derby.
+- Added status updating for selected household requests.
+- Added Pending, Approved and Fulfilled status choices.
+- Used immutable `copy` to update the selected request.
+- Updated `Test Family` from Pending to Approved.
+- Restarted the application and confirmed that the updated status remained persisted.
 
