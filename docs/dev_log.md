@@ -200,4 +200,8 @@
 - Counted unique households served through completed distributions.
 - Used `groupMapReduce`, `filter`, `map` and `distinct`.
 - Confirmed the project compiled successfully.
+- Fixed the distribution summary display after the multiline label was compressed.
+- Replaced the single report label with five labels inside a wrapping `FlowPane`.
+- Confirmed that total, planned, completed, cancelled and unique households served values were fully visible.
+- Verified that a cancelled distribution did not count as a household served.
 

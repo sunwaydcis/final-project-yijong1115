@@ -7,7 +7,10 @@ import foodpantry.model.{
   HouseholdRequest
 }
 import foodpantry.repository.Repository
-import foodpantry.service.DistributionPlanningService
+import foodpantry.service.{
+  DistributionPlanningService,
+  DistributionReportService
+}
 
 import scalafx.Includes.*
 import scalafx.beans.property.StringProperty
@@ -20,7 +23,7 @@ import scalafx.scene.control.{
   TableColumn,
   TableView
 }
-import scalafx.scene.layout.VBox
+import scalafx.scene.layout.{FlowPane, VBox}
 
 import scala.util.{Failure, Success}
 
@@ -43,9 +46,42 @@ class DistributionPlanView(
   private val statusLabel =
     new Label("Distribution plans have not been loaded.")
 
+  private val totalPlansLabel =
+    new Label("Total plans: 0")
+
+  private val plannedPlansLabel =
+    new Label("Planned: 0")
+
+  private val completedPlansLabel =
+    new Label("Completed: 0")
+
+  private val cancelledPlansLabel =
+    new Label("Cancelled: 0")
+
+  private val householdsServedLabel =
+    new Label("Unique households served: 0")
+
+  // ai-assisted: #43
+  // why: AI helped replace a compressed multiline label with a wrapping summary panel.
+  private val reportSummaryPane =
+    new FlowPane:
+      hgap = 18
+      vgap = 6
+      prefWrapLength = 850
+      minHeight = 55
+
+      children = Seq(
+        totalPlansLabel,
+        plannedPlansLabel,
+        completedPlansLabel,
+        cancelledPlansLabel,
+        householdsServedLabel
+      )
+
   private val distributionTable =
     new TableView[DistributionPlan](distributionPlans):
       prefHeight = 350
+
       columns ++= List(
         textColumn(
           "Household",
@@ -121,6 +157,8 @@ class DistributionPlanView(
     new Label("Daily Distribution Plans"),
     distributionPlanForm,
     refreshButton,
+    new Label("Distribution Summary"),
+    reportSummaryPane,
     statusComboBox,
     updateStatusButton,
     distributionTable,
@@ -135,6 +173,7 @@ class DistributionPlanView(
   ): TableColumn[DistributionPlan, String] =
     new TableColumn[DistributionPlan, String]:
       text = heading
+
       cellValueFactory = cellData =>
         StringProperty(
           extractValue(cellData.value)
@@ -146,12 +185,55 @@ class DistributionPlanView(
         distributionPlans.clear()
         distributionPlans ++= plans
 
+        updateReport(plans)
+
         statusLabel.text =
           s"${plans.size} distribution plan(s) loaded."
 
       case Failure(exception) =>
+        showUnavailableReport()
+
         statusLabel.text =
           s"Unable to load distribution plans: ${exception.getMessage}"
+
+  // ai-assisted: #42
+  // why: AI helped connect the immutable report service to the ScalaFX screen.
+  private def updateReport(
+      plans: List[DistributionPlan]
+  ): Unit =
+    val report =
+      DistributionReportService.generate(plans)
+
+    totalPlansLabel.text =
+      s"Total plans: ${report.totalPlans}"
+
+    plannedPlansLabel.text =
+      s"Planned: ${report.plannedPlans}"
+
+    completedPlansLabel.text =
+      s"Completed: ${report.completedPlans}"
+
+    cancelledPlansLabel.text =
+      s"Cancelled: ${report.cancelledPlans}"
+
+    householdsServedLabel.text =
+      s"Unique households served: ${report.householdsServed}"
+
+  private def showUnavailableReport(): Unit =
+    totalPlansLabel.text =
+      "Total plans: unavailable"
+
+    plannedPlansLabel.text =
+      "Planned: -"
+
+    completedPlansLabel.text =
+      "Completed: -"
+
+    cancelledPlansLabel.text =
+      "Cancelled: -"
+
+    householdsServedLabel.text =
+      "Unique households served: -"
 
   private def updateSelectedStatus(): Unit =
     val selectedPlan =
