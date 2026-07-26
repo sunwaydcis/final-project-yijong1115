@@ -98,4 +98,9 @@
 - Added `LowStockAlert` and `ExpiryAlert` case-class subtypes.
 - Added subtype-specific alert messages for low inventory and approaching expiry.
 - Confirmed the project compiled successfully.
+- Added `InventoryMonitoringService`.
+- Added configurable low-stock and expiry-warning thresholds.
+- Used immutable collections, `Option`, `flatMap` and pattern matching.
+- Sorted expired and near-expiry alerts before low-stock alerts.
+- Confirmed the project compiled successfully.
 
