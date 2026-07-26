@@ -17,7 +17,8 @@ import scalafx.beans.property.StringProperty
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
-  ComboBox,
+  Alert,
+  ButtonType,
   Label,
   TableColumn,
   TableView
@@ -143,23 +144,24 @@ class DistributionPlanView(
     loadPlans()
   }
 
-  private val statusComboBox =
-    new ComboBox[String](
-      ObservableBuffer(
-        "Planned",
-        "Completed",
-        "Cancelled"
-      )
-    ):
-      promptText = "Select new status"
+  // ai-assisted: #46
+  // why: AI helped replace arbitrary plan statuses with clear valid workflow actions.
+  private val completePlanButton =
+    UiComponents.primaryButton(
+      "Complete Selected Plan"
+    )
 
-  // ai-assisted: #40
-  // why: AI helped add safe status updates for selected immutable plans.
-  private val updateStatusButton =
-    UiComponents.primaryButton("Update Status")
+  completePlanButton.onAction = handle {
+    completeSelectedPlan()
+  }
 
-  updateStatusButton.onAction = handle {
-    updateSelectedStatus()
+  private val cancelPlanButton =
+    UiComponents.dangerButton(
+      "Cancel Selected Plan"
+    )
+
+  cancelPlanButton.onAction = handle {
+    cancelSelectedPlan()
   }
 
   private val planActions =
@@ -169,8 +171,8 @@ class DistributionPlanView(
       styleClass += "action-bar"
       children = Seq(
         refreshButton,
-        statusComboBox,
-        updateStatusButton
+        completePlanButton,
+        cancelPlanButton
       )
 
   // ai-assisted: #45
@@ -184,7 +186,8 @@ class DistributionPlanView(
   children = Seq(
     UiComponents.pageTitle("Distribution Planning"),
     UiComponents.pageDescription(
-      "Allocate available food to approved requests and track delivery progress."
+      "Allocate available food, then complete or cancel each planned delivery. " +
+        "Completing a plan reduces inventory automatically."
     ),
     UiComponents.formSection(
       "Create a distribution plan",
@@ -268,66 +271,98 @@ class DistributionPlanView(
     householdsServedLabel.text =
       "Households served: -"
 
-  private def updateSelectedStatus(): Unit =
-    val selectedPlan =
-      Option(
-        distributionTable
-          .selectionModel()
-          .selectedItem
-          .value
-      )
-
-    val selectedStatus =
-      Option(statusComboBox.value.value)
-        .flatMap(parseStatus)
-
-    (selectedPlan, selectedStatus) match
-      case (None, _) =>
+  private def completeSelectedPlan(): Unit =
+    selectedPlan() match
+      case None =>
         statusLabel.text =
-          "Select a distribution plan before updating."
+          "Select a planned distribution before completing it."
 
-      case (_, None) =>
+      case Some(distributionPlan)
+          if distributionPlan.status !=
+            DistributionStatus.Planned =>
         statusLabel.text =
-          "Select a valid distribution status."
+          s"This distribution is already ${distributionPlan.status}."
 
-      case (
-            Some(distributionPlan),
-            Some(distributionStatus)
-          ) =>
-        val updatedPlan =
-          distributionPlan.copy(
-            status = distributionStatus
-          )
+      case Some(distributionPlan) =>
+        if confirmCompletion(distributionPlan) then
+          allocationService.complete(distributionPlan.id) match
+            case Success(completedPlan) =>
+              refreshPlansAndChoices()
+              statusLabel.text =
+                s"Distribution for ${completedPlan.householdName} " +
+                  "was completed and inventory was reduced."
 
-        distributionRepository
-          .update(updatedPlan) match
-          case Success(savedPlan) =>
-            loadPlans()
+            case Failure(exception) =>
+              statusLabel.text =
+                s"Unable to complete distribution: ${exception.getMessage}"
 
-            statusComboBox
-              .selectionModel()
-              .clearSelection()
+  private def cancelSelectedPlan(): Unit =
+    selectedPlan() match
+      case None =>
+        statusLabel.text =
+          "Select a planned distribution before cancelling it."
 
-            statusLabel.text =
-              s"${savedPlan.householdName} distribution " +
-                s"status was updated to ${savedPlan.status}."
+      case Some(distributionPlan)
+          if distributionPlan.status !=
+            DistributionStatus.Planned =>
+        statusLabel.text =
+          s"This distribution is already ${distributionPlan.status}."
 
-          case Failure(exception) =>
-            statusLabel.text =
-              s"Unable to update plan: ${exception.getMessage}"
+      case Some(distributionPlan) =>
+        if confirmCancellation(distributionPlan) then
+          allocationService.cancel(distributionPlan.id) match
+            case Success(cancelledPlan) =>
+              refreshPlansAndChoices()
+              statusLabel.text =
+                s"Distribution for ${cancelledPlan.householdName} " +
+                  "was cancelled and its reservation was released."
 
-  private def parseStatus(
-      statusValue: String
-  ): Option[DistributionStatus] =
-    statusValue match
-      case "Planned" =>
-        Some(DistributionStatus.Planned)
+            case Failure(exception) =>
+              statusLabel.text =
+                s"Unable to cancel distribution: ${exception.getMessage}"
 
-      case "Completed" =>
-        Some(DistributionStatus.Completed)
+  private def selectedPlan(): Option[DistributionPlan] =
+    Option(
+      distributionTable
+        .selectionModel()
+        .selectedItem
+        .value
+    )
 
-      case "Cancelled" =>
-        Some(DistributionStatus.Cancelled)
+  private def refreshPlansAndChoices(): Unit =
+    loadPlans()
+    distributionPlanForm.refreshChoices()
 
-      case _ =>
-        None
+  private def confirmCompletion(
+      distributionPlan: DistributionPlan
+  ): Boolean =
+    val confirmation =
+      new Alert(Alert.AlertType.Confirmation):
+        title = "Complete distribution"
+        headerText =
+          s"Complete delivery for ${distributionPlan.householdName}?"
+        contentText =
+          s"${distributionPlan.allocatedQuantity} " +
+            s"${distributionPlan.allocatedUnit} of " +
+            s"${distributionPlan.foodItemName} will be removed " +
+            "from inventory. This action cannot be undone."
+
+    confirmation
+      .showAndWait()
+      .contains(ButtonType.OK)
+
+  private def confirmCancellation(
+      distributionPlan: DistributionPlan
+  ): Boolean =
+    val confirmation =
+      new Alert(Alert.AlertType.Confirmation):
+        title = "Cancel distribution"
+        headerText =
+          s"Cancel the plan for ${distributionPlan.householdName}?"
+        contentText =
+          "The reserved food will become available for another plan. " +
+            "This action cannot be undone."
+
+    confirmation
+      .showAndWait()
+      .contains(ButtonType.OK)

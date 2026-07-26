@@ -1,6 +1,7 @@
 package foodpantry.ui
 
 import foodpantry.model.{
+  FoodItem,
   HouseholdRequest,
   RequestStatus
 }
@@ -11,7 +12,6 @@ import scalafx.beans.property.StringProperty
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
-  ComboBox,
   Label,
   TableColumn,
   TableView
@@ -24,7 +24,8 @@ import scala.util.{Failure, Success}
 // ai-assisted: #26
 // why: AI helped build a ScalaFX household-request table using the generic repository.
 class HouseholdRequestView(
-    private val repository: Repository[HouseholdRequest]
+    private val repository: Repository[HouseholdRequest],
+    private val foodItemRepository: Repository[FoodItem]
 ) extends VBox:
 
   private val householdRequests =
@@ -78,6 +79,7 @@ class HouseholdRequestView(
   private val householdRequestForm =
     new HouseholdRequestForm(
       repository,
+      foodItemRepository,
       () => loadRequests()
     )
 
@@ -88,23 +90,15 @@ class HouseholdRequestView(
     loadRequests()
   }
 
-  private val statusComboBox =
-    new ComboBox[String](
-      ObservableBuffer(
-        "Pending",
-        "Approved",
-        "Fulfilled"
-      )
-    ):
-      promptText = "Select new status"
+  // ai-assisted: #46
+  // why: AI helped replace arbitrary statuses with one clear valid request action.
+  private val approveRequestButton =
+    UiComponents.primaryButton(
+      "Approve Selected Request"
+    )
 
-  // ai-assisted: #29
-  // why: AI helped add safe status updates for selected immutable requests.
-  private val updateStatusButton =
-    UiComponents.primaryButton("Update Status")
-
-  updateStatusButton.onAction = handle {
-    updateSelectedStatus()
+  approveRequestButton.onAction = handle {
+    approveSelectedRequest()
   }
 
   private val requestActions =
@@ -114,8 +108,7 @@ class HouseholdRequestView(
       styleClass += "action-bar"
       children = Seq(
         refreshButton,
-        statusComboBox,
-        updateStatusButton
+        approveRequestButton
       )
 
   // ai-assisted: #45
@@ -129,7 +122,8 @@ class HouseholdRequestView(
   children = Seq(
     UiComponents.pageTitle("Household Requests"),
     UiComponents.pageDescription(
-      "Register household needs, then approve requests before planning distributions."
+      "Register household needs and approve pending requests. " +
+        "Fulfilled status is assigned automatically after distribution."
     ),
     UiComponents.formSection(
       "Register a household request",
@@ -167,59 +161,43 @@ class HouseholdRequestView(
         statusLabel.text =
           s"Unable to load requests: ${exception.getMessage}"
 
-  private def updateSelectedStatus(): Unit =
+  private def approveSelectedRequest(): Unit =
     val selectedRequest =
       Option(
         requestTable.selectionModel().selectedItem.value
       )
 
-    val selectedStatus =
-      Option(statusComboBox.value.value)
-        .flatMap(parseStatus)
-
-    (selectedRequest, selectedStatus) match
-      case (None, _) =>
+    selectedRequest match
+      case None =>
         statusLabel.text =
-          "Select a household request before updating."
+          "Select a pending household request before approving."
 
-      case (_, None) =>
+      case Some(householdRequest)
+          if householdRequest.status ==
+            RequestStatus.Approved =>
         statusLabel.text =
-          "Select a valid request status."
+          s"${householdRequest.householdName} is already approved."
 
-      case (
-            Some(householdRequest),
-            Some(requestStatus)
-          ) =>
+      case Some(householdRequest)
+          if householdRequest.status ==
+            RequestStatus.Fulfilled =>
+        statusLabel.text =
+          s"${householdRequest.householdName} is already fulfilled."
+
+      case Some(householdRequest) =>
         val updatedRequest =
           householdRequest.copy(
-            status = requestStatus
+            status = RequestStatus.Approved
           )
 
         repository.update(updatedRequest) match
           case Success(savedRequest) =>
             loadRequests()
-            statusComboBox.selectionModel().clearSelection()
 
             statusLabel.text =
-              s"${savedRequest.householdName} status was " +
-                s"updated to ${savedRequest.status}."
+              s"${savedRequest.householdName} was approved " +
+                "and is ready for distribution planning."
 
           case Failure(exception) =>
             statusLabel.text =
-              s"Unable to update request: ${exception.getMessage}"
-
-  private def parseStatus(
-      statusValue: String
-  ): Option[RequestStatus] =
-    statusValue match
-      case "Pending" =>
-        Some(RequestStatus.Pending)
-
-      case "Approved" =>
-        Some(RequestStatus.Approved)
-
-      case "Fulfilled" =>
-        Some(RequestStatus.Fulfilled)
-
-      case _ =>
-        None
+              s"Unable to approve request: ${exception.getMessage}"

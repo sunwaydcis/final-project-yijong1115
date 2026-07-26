@@ -7,7 +7,8 @@ lazy val root = (project in file("."))
 
     libraryDependencies ++= Seq(
       "org.scalafx" %% "scalafx" % "21.0.0-R32",
-      "org.apache.derby" % "derby" % "10.17.1.0"
+      "org.apache.derby" % "derby" % "10.17.1.0",
+      "org.scalameta" %% "munit" % "1.0.2" % Test
     ),
 
     scalacOptions ++= Seq(

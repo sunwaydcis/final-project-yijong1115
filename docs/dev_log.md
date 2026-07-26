@@ -231,4 +231,13 @@
 - Improved form prompts, responsive field widths and status-message readability.
 - Removed all unused imports introduced during the redesign.
 - Confirmed that `sbt clean compile` completed with zero Scala warnings after the usability changes.
+- Replaced free-text household food categories with categories loaded from current inventory.
+- Replaced the household status dropdown with a single Approve action; Fulfilled is now assigned automatically.
+- Replaced arbitrary distribution status changes with Complete and Cancel actions and confirmation dialogs.
+- Added an atomic completion workflow that reduces inventory and synchronises the linked household request.
+- Changed planned distributions into stock reservations and made cancellation release the reservation.
+- Prevented inventory deletion or quantity reduction from invalidating planned distributions.
+- Added a one-time Derby migration so existing completed plans reduce stock exactly once.
+- Added MUnit and three isolated Derby workflow tests for completion, cancellation and legacy migration.
+- Confirmed that all three automated tests passed.
 

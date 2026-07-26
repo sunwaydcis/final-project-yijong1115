@@ -22,6 +22,8 @@ object DatabaseInitializer:
       createFoodItemsTable(connection)
       createHouseholdRequestsTable(connection)
       createDistributionPlansTable(connection)
+      ensureStockDeductedColumn(connection)
+      migrateCompletedDistributionStock(connection)
 
   private def createFoodItemsTable(
       connection: Connection
@@ -99,12 +101,159 @@ object DatabaseInitializer:
             |  ALLOCATED_QUANTITY INT NOT NULL,
             |  ALLOCATED_UNIT VARCHAR(30) NOT NULL,
             |  DISTRIBUTION_DATE DATE NOT NULL,
-            |  STATUS VARCHAR(20) NOT NULL
+            |  STATUS VARCHAR(20) NOT NULL,
+            |  STOCK_DEDUCTED SMALLINT DEFAULT 0 NOT NULL
             |)
             |""".stripMargin
         )
       finally
         statement.close()
+
+  // ai-assisted: #46
+  // why: AI helped make legacy completed plans reduce stock once without double deduction.
+  private def ensureStockDeductedColumn(
+      connection: Connection
+  ): Unit =
+    if !columnExists(
+        connection,
+        distributionPlansTableName,
+        "STOCK_DEDUCTED"
+      )
+    then
+      val statement = connection.createStatement()
+
+      try
+        statement.executeUpdate(
+          """
+            |ALTER TABLE DISTRIBUTION_PLANS
+            |ADD COLUMN STOCK_DEDUCTED
+            |SMALLINT DEFAULT 0 NOT NULL
+            |""".stripMargin
+        )
+      finally
+        statement.close()
+
+  private def migrateCompletedDistributionStock(
+      connection: Connection
+  ): Unit =
+    val legacyDistributions =
+      loadLegacyCompletedDistributions(connection)
+
+    if legacyDistributions.nonEmpty then
+      val originalAutoCommit =
+        connection.getAutoCommit
+
+      connection.setAutoCommit(false)
+
+      try
+        legacyDistributions.foreach:
+          case (
+                distributionPlanId,
+                foodItemId,
+                allocatedQuantity
+              ) =>
+            deductLegacyStock(
+              connection,
+              foodItemId,
+              allocatedQuantity
+            )
+
+            markStockDeducted(
+              connection,
+              distributionPlanId
+            )
+
+        connection.commit()
+      catch
+        case exception: Throwable =>
+          connection.rollback()
+          throw exception
+      finally
+        connection.setAutoCommit(originalAutoCommit)
+
+  private def loadLegacyCompletedDistributions(
+      connection: Connection
+  ): List[(String, String, Int)] =
+    val statement =
+      connection.prepareStatement(
+        """
+          |SELECT ID, FOOD_ITEM_ID, ALLOCATED_QUANTITY
+          |FROM DISTRIBUTION_PLANS
+          |WHERE STATUS = 'Completed'
+          |  AND STOCK_DEDUCTED = 0
+          |""".stripMargin
+      )
+
+    try
+      val resultSet =
+        statement.executeQuery()
+
+      try
+        Iterator
+          .continually(resultSet.next())
+          .takeWhile(hasNextRow => hasNextRow)
+          .map: _ =>
+            (
+              resultSet.getString("ID"),
+              resultSet.getString("FOOD_ITEM_ID"),
+              resultSet.getInt("ALLOCATED_QUANTITY")
+            )
+          .toList
+      finally
+        resultSet.close()
+    finally
+      statement.close()
+
+  private def deductLegacyStock(
+      connection: Connection,
+      foodItemId: String,
+      allocatedQuantity: Int
+  ): Unit =
+    val statement =
+      connection.prepareStatement(
+        """
+          |UPDATE FOOD_ITEMS
+          |SET QUANTITY = QUANTITY - ?
+          |WHERE ID = ?
+          |  AND QUANTITY >= ?
+          |""".stripMargin
+      )
+
+    try
+      statement.setInt(1, allocatedQuantity)
+      statement.setString(2, foodItemId)
+      statement.setInt(3, allocatedQuantity)
+
+      if statement.executeUpdate() != 1 then
+        throw new IllegalStateException(
+          "A completed distribution could not be reconciled " +
+            s"with inventory item $foodItemId."
+        )
+    finally
+      statement.close()
+
+  private def markStockDeducted(
+      connection: Connection,
+      distributionPlanId: String
+  ): Unit =
+    val statement =
+      connection.prepareStatement(
+        """
+          |UPDATE DISTRIBUTION_PLANS
+          |SET STOCK_DEDUCTED = 1
+          |WHERE ID = ?
+          |""".stripMargin
+      )
+
+    try
+      statement.setString(1, distributionPlanId)
+
+      if statement.executeUpdate() != 1 then
+        throw new IllegalStateException(
+          s"Distribution plan $distributionPlanId could not be reconciled."
+        )
+    finally
+      statement.close()
 
   private def tableExists(
       connection: Connection,
@@ -114,6 +263,26 @@ object DatabaseInitializer:
       connection
         .getMetaData
         .getTables(null, null, tableName, null)
+
+    try
+      resultSet.next()
+    finally
+      resultSet.close()
+
+  private def columnExists(
+      connection: Connection,
+      tableName: String,
+      columnName: String
+  ): Boolean =
+    val resultSet =
+      connection
+        .getMetaData
+        .getColumns(
+          null,
+          null,
+          tableName,
+          columnName
+        )
 
     try
       resultSet.next()

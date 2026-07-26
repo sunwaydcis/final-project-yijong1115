@@ -7,9 +7,15 @@ import scala.util.{Failure, Success, Try, Using}
 // why: AI helped encapsulate Derby connections and ensure each connection closes safely.
 object DatabaseManager:
 
-  // Kept private so other classes cannot change the shared database location.
-  private val databaseUrl =
-    "jdbc:derby:data/foodPantryDB;create=true"
+  // Kept private so production code cannot change the shared database location.
+  // Tests may provide an isolated location through a JVM property.
+  private def databaseUrl: String =
+    Option(
+      System.getProperty("foodpantry.database.url")
+    ).filter(url => url.trim.nonEmpty)
+      .getOrElse(
+        "jdbc:derby:data/foodPantryDB;create=true"
+      )
 
   def withConnection[T](operation: Connection => T): Try[T] =
     Try:

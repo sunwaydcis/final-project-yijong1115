@@ -85,11 +85,15 @@ object MainApp extends JFXApp3:
       )
 
     val inventoryPane =
-      new InventoryView(foodItemRepository)
+      new InventoryView(
+        foodItemRepository,
+        distributionRepository
+      )
 
     val requestsPane =
       new HouseholdRequestView(
-        householdRequestRepository
+        householdRequestRepository,
+        foodItemRepository
       )
 
     val distributionPane =

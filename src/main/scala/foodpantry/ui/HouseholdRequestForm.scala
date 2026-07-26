@@ -1,14 +1,17 @@
 package foodpantry.ui
 
 import foodpantry.model.{
+  FoodItem,
   HouseholdRequest,
   RequestStatus
 }
 import foodpantry.repository.Repository
 
 import scalafx.Includes.*
+import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
+  ComboBox,
   DatePicker,
   TextField
 }
@@ -26,6 +29,7 @@ import scala.util.{Failure, Success, Try}
 // why: AI helped create a safe ScalaFX form for persistent household requests.
 class HouseholdRequestForm(
     private val repository: Repository[HouseholdRequest],
+    private val foodItemRepository: Repository[FoodItem],
     private val onSaved: () => Unit
 ) extends GridPane:
 
@@ -37,9 +41,19 @@ class HouseholdRequestForm(
     new TextField:
       promptText = "Whole number of people"
 
-  private val requestedCategoryField =
-    new TextField:
-      promptText = "Example: Grains"
+  private val categoryOptions =
+    ObservableBuffer.empty[String]
+
+  // ai-assisted: #46
+  // why: AI helped replace error-prone category typing with live inventory choices.
+  private val requestedCategoryComboBox =
+    new ComboBox[String](categoryOptions):
+      promptText = "Choose an inventory category"
+      maxWidth = Double.MaxValue
+
+  requestedCategoryComboBox.onShowing = handle {
+    loadCategoryOptions()
+  }
 
   private val requestedQuantityField =
     new TextField:
@@ -90,7 +104,7 @@ class HouseholdRequestForm(
   add(householdSizeField, 1, 1)
 
   add(UiComponents.fieldLabel("Food category"), 0, 2)
-  add(requestedCategoryField, 1, 2)
+  add(requestedCategoryComboBox, 1, 2)
 
   add(UiComponents.fieldLabel("Requested quantity"), 0, 3)
   add(requestedQuantityField, 1, 3)
@@ -100,6 +114,8 @@ class HouseholdRequestForm(
 
   add(addButton, 1, 5)
   add(statusLabel, 0, 6, 2, 1)
+
+  loadCategoryOptions()
 
   private def saveRequest(): Unit =
     createRequest() match
@@ -138,12 +154,18 @@ class HouseholdRequestForm(
       requestDate <-
         Option(requestDatePicker.value.value)
           .toRight("Request date is required.")
+
+      requestedCategory <-
+        Option(requestedCategoryComboBox.value.value)
+          .toRight(
+            "Choose a food category currently available in inventory."
+          )
     yield
       HouseholdRequest(
         UUID.randomUUID().toString,
         householdNameField.text.value.trim,
         householdSize,
-        requestedCategoryField.text.value.trim,
+        requestedCategory,
         requestedQuantity,
         requestDate,
         RequestStatus.Pending
@@ -164,9 +186,42 @@ class HouseholdRequestForm(
           s"$fieldName must be greater than zero."
         )
 
+  private def loadCategoryOptions(): Unit =
+    foodItemRepository.findAll() match
+      case Success(foodItems) =>
+        val selectedCategory =
+          Option(requestedCategoryComboBox.value.value)
+
+        val categories =
+          foodItems
+            .filter(foodItem => foodItem.quantity > 0)
+            .map(foodItem => foodItem.category.trim)
+            .filter(category => category.nonEmpty)
+            .distinct
+            .sorted
+
+        categoryOptions.clear()
+        categoryOptions ++= categories
+
+        selectedCategory
+          .filter(categories.contains)
+          .foreach: category =>
+            requestedCategoryComboBox.value = category
+
+        if categories.isEmpty then
+          statusLabel.text =
+            "Add available food to inventory before registering a request."
+
+      case Failure(exception) =>
+        categoryOptions.clear()
+        statusLabel.text =
+          s"Unable to load inventory categories: ${exception.getMessage}"
+
   private def clearForm(): Unit =
     householdNameField.clear()
     householdSizeField.clear()
-    requestedCategoryField.clear()
+    requestedCategoryComboBox
+      .selectionModel()
+      .clearSelection()
     requestedQuantityField.clear()
     requestDatePicker.value = LocalDate.now

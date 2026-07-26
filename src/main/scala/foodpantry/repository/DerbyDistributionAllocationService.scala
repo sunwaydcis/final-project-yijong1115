@@ -28,6 +28,9 @@ class DerbyDistributionAllocationService(
   private val findFoodItemSql =
     "SELECT * FROM FOOD_ITEMS WHERE ID = ?"
 
+  private val findDistributionPlanSql =
+    "SELECT * FROM DISTRIBUTION_PLANS WHERE ID = ?"
+
   private val allocatedForRequestSql =
     """
       |SELECT COALESCE(SUM(ALLOCATED_QUANTITY), 0)
@@ -41,7 +44,7 @@ class DerbyDistributionAllocationService(
       |SELECT COALESCE(SUM(ALLOCATED_QUANTITY), 0)
       |FROM DISTRIBUTION_PLANS
       |WHERE FOOD_ITEM_ID = ?
-      |  AND STATUS IN ('Planned', 'Completed')
+      |  AND STATUS = 'Planned'
       |""".stripMargin
 
   private val insertPlanSql =
@@ -61,12 +64,39 @@ class DerbyDistributionAllocationService(
       |VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       |""".stripMargin
 
-  private val markRequestFulfilledSql =
+  private val completedForRequestSql =
+    """
+      |SELECT COALESCE(SUM(ALLOCATED_QUANTITY), 0)
+      |FROM DISTRIBUTION_PLANS
+      |WHERE HOUSEHOLD_REQUEST_ID = ?
+      |  AND STATUS = 'Completed'
+      |""".stripMargin
+
+  private val decrementFoodItemSql =
+    """
+      |UPDATE FOOD_ITEMS
+      |SET QUANTITY = QUANTITY - ?
+      |WHERE ID = ?
+      |  AND QUANTITY >= ?
+      |""".stripMargin
+
+  private val updatePlanStatusSql =
+    """
+      |UPDATE DISTRIBUTION_PLANS
+      |SET STATUS = ?,
+      |    STOCK_DEDUCTED =
+      |      CASE WHEN ? = 'Completed' THEN 1
+      |           ELSE STOCK_DEDUCTED
+      |      END
+      |WHERE ID = ?
+      |  AND STATUS = 'Planned'
+      |""".stripMargin
+
+  private val updateRequestStatusSql =
     """
       |UPDATE HOUSEHOLD_REQUESTS
-      |SET STATUS = 'Fulfilled'
+      |SET STATUS = ?
       |WHERE ID = ?
-      |  AND STATUS = 'Approved'
       |""".stripMargin
 
   override def allocate(
@@ -119,15 +149,60 @@ class DerbyDistributionAllocationService(
               )
         savedPlan <-
           insertPlan(connection, distributionPlan)
-        _ <-
-          markRequestFulfilledWhenAllocated(
-            connection,
-            householdRequest,
-            remainingRequestedQuantity,
-            allocatedQuantity
-          )
       yield
         savedPlan
+
+  // ai-assisted: #46
+  // why: AI helped make completion reduce stock and update related statuses atomically.
+  override def complete(
+      distributionPlanId: String
+  ): Try[DistributionPlan] =
+    DatabaseManager.withTransaction: connection =>
+      for
+        distributionPlan <-
+          findDistributionPlan(
+            connection,
+            distributionPlanId
+          )
+        _ <- requirePlanned(distributionPlan)
+        _ <- decrementInventory(
+          connection,
+          distributionPlan
+        )
+        completedPlan <- updatePlanStatus(
+          connection,
+          distributionPlan,
+          DistributionStatus.Completed
+        )
+        _ <- synchroniseRequestStatus(
+          connection,
+          completedPlan.householdRequestId
+        )
+      yield
+        completedPlan
+
+  override def cancel(
+      distributionPlanId: String
+  ): Try[DistributionPlan] =
+    DatabaseManager.withTransaction: connection =>
+      for
+        distributionPlan <-
+          findDistributionPlan(
+            connection,
+            distributionPlanId
+          )
+        _ <- requirePlanned(distributionPlan)
+        cancelledPlan <- updatePlanStatus(
+          connection,
+          distributionPlan,
+          DistributionStatus.Cancelled
+        )
+        _ <- synchroniseRequestStatus(
+          connection,
+          cancelledPlan.householdRequestId
+        )
+      yield
+        cancelledPlan
 
   private def findHouseholdRequest(
       connection: Connection,
@@ -205,6 +280,48 @@ class DerbyDistributionAllocationService(
         Left(
           new NoSuchElementException(
             s"Food item $foodItemId was not found."
+          )
+        )
+
+      case Failure(exception) =>
+        Left(exception)
+
+  private def findDistributionPlan(
+      connection: Connection,
+      distributionPlanId: String
+  ): Either[Throwable, DistributionPlan] =
+    Try:
+      val statement =
+        connection.prepareStatement(findDistributionPlanSql)
+
+      try
+        statement.setString(1, distributionPlanId)
+
+        val resultSet =
+          statement.executeQuery()
+
+        try
+          if resultSet.next() then
+            Some(
+              DistributionPlanMapper.fromResultSet(resultSet)
+            )
+          else
+            None
+        finally
+          resultSet.close()
+      finally
+        statement.close()
+    match
+      case Success(Some(Right(distributionPlan))) =>
+        Right(distributionPlan)
+
+      case Success(Some(Left(message))) =>
+        Left(new IllegalStateException(message))
+
+      case Success(None) =>
+        Left(
+          new NoSuchElementException(
+            s"Distribution plan $distributionPlanId was not found."
           )
         )
 
@@ -291,41 +408,144 @@ class DerbyDistributionAllocationService(
       DistributionStatus.Planned.toString
     )
 
-  private def markRequestFulfilledWhenAllocated(
-      connection: Connection,
-      householdRequest: HouseholdRequest,
-      remainingRequestedQuantity: Int,
-      allocatedQuantity: Int
+  private def requirePlanned(
+      distributionPlan: DistributionPlan
   ): Either[Throwable, Unit] =
-    if allocatedQuantity < remainingRequestedQuantity then
-      Right(())
-    else
-      Try:
-        val statement =
-          connection.prepareStatement(
-            markRequestFulfilledSql
+    Either.cond(
+      distributionPlan.status == DistributionStatus.Planned,
+      (),
+      new IllegalStateException(
+        s"Only a Planned distribution can be changed. " +
+          s"This plan is already ${distributionPlan.status}."
+      )
+    )
+
+  private def decrementInventory(
+      connection: Connection,
+      distributionPlan: DistributionPlan
+  ): Either[Throwable, Unit] =
+    Try:
+      val statement =
+        connection.prepareStatement(decrementFoodItemSql)
+
+      try
+        statement.setInt(
+          1,
+          distributionPlan.allocatedQuantity
+        )
+        statement.setString(
+          2,
+          distributionPlan.foodItemId
+        )
+        statement.setInt(
+          3,
+          distributionPlan.allocatedQuantity
+        )
+
+        Either.cond(
+          statement.executeUpdate() == 1,
+          (),
+          new IllegalStateException(
+            "The food item no longer has enough stock " +
+              "to complete this distribution."
           )
+        )
+      finally
+        statement.close()
+    match
+      case Success(result) =>
+        result
 
-        try
-          statement.setString(1, householdRequest.id)
+      case Failure(exception) =>
+        Left(exception)
 
-          val affectedRows =
-            statement.executeUpdate()
+  private def updatePlanStatus(
+      connection: Connection,
+      distributionPlan: DistributionPlan,
+      newStatus: DistributionStatus
+  ): Either[Throwable, DistributionPlan] =
+    Try:
+      val statement =
+        connection.prepareStatement(updatePlanStatusSql)
 
-          if affectedRows == 1 then
-            Right(())
-          else
-            Left(
-              new IllegalStateException(
-                "The household request changed before " +
-                  "the allocation could be completed."
-              )
-            )
-        finally
-          statement.close()
-      match
-        case Success(result) =>
-          result
+      try
+        statement.setString(1, newStatus.toString)
+        statement.setString(2, newStatus.toString)
+        statement.setString(3, distributionPlan.id)
 
-        case Failure(exception) =>
-          Left(exception)
+        Either.cond(
+          statement.executeUpdate() == 1,
+          distributionPlan.copy(status = newStatus),
+          new IllegalStateException(
+            "The distribution plan changed before " +
+              "the action could be completed."
+          )
+        )
+      finally
+        statement.close()
+    match
+      case Success(result) =>
+        result
+
+      case Failure(exception) =>
+        Left(exception)
+
+  private def synchroniseRequestStatus(
+      connection: Connection,
+      householdRequestId: String
+  ): Either[Throwable, Unit] =
+    for
+      householdRequest <-
+        findHouseholdRequest(
+          connection,
+          householdRequestId
+        )
+      completedQuantity <-
+        allocatedQuantityFor(
+          connection,
+          completedForRequestSql,
+          householdRequestId
+        )
+      requestStatus =
+        if completedQuantity >=
+            householdRequest.requestedQuantity
+        then
+          foodpantry.model.RequestStatus.Fulfilled
+        else
+          foodpantry.model.RequestStatus.Approved
+      _ <- updateRequestStatus(
+        connection,
+        householdRequestId,
+        requestStatus.toString
+      )
+    yield
+      ()
+
+  private def updateRequestStatus(
+      connection: Connection,
+      householdRequestId: String,
+      statusValue: String
+  ): Either[Throwable, Unit] =
+    Try:
+      val statement =
+        connection.prepareStatement(updateRequestStatusSql)
+
+      try
+        statement.setString(1, statusValue)
+        statement.setString(2, householdRequestId)
+
+        Either.cond(
+          statement.executeUpdate() == 1,
+          (),
+          new IllegalStateException(
+            "The linked household request was not found."
+          )
+        )
+      finally
+        statement.close()
+    match
+      case Success(result) =>
+        result
+
+      case Failure(exception) =>
+        Left(exception)

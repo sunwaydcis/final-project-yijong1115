@@ -32,9 +32,11 @@ Users can:
 Users can:
 
 - Register household food requests
-- Record household names, requested categories and quantities
+- Choose requested categories directly from current inventory
+- Record household names and requested quantities
 - View all requests
-- Change request status to Pending, Approved or Fulfilled
+- Approve pending requests with one clear action
+- Automatically mark requests Fulfilled after the full quantity is distributed
 - Retain request data after restarting the application
 
 ### 3. Expiry and Low-Stock Monitoring
@@ -42,7 +44,7 @@ Users can:
 The dashboard calculates and displays:
 
 - Total inventory items
-- Total household requests
+- Total inventory quantity
 - Low-stock alerts
 - Food items approaching expiry
 
@@ -55,7 +57,9 @@ Users can:
 - Create distribution plans from approved household requests
 - Select an available food item
 - Validate requested quantities and distribution dates
-- Change plan status to Planned, Completed or Cancelled
+- Complete or cancel Planned distributions through guided actions
+- Reduce inventory automatically when a distribution is completed
+- Release reserved stock when a distribution is cancelled
 - View totals for each distribution status
 - View the number of unique households served by completed plans
 - Retain distribution plans and status changes after restarting
@@ -101,6 +105,7 @@ Mutable `var` declarations and mutable collection classes are not used in the pr
 - Java 21 target environment
 - sbt 2.0.3
 - Apache Derby 10.17.1.0 embedded database
+- MUnit 1.0.2
 - Git and GitHub
 
 ## Project Structure
@@ -192,10 +197,10 @@ The database schema is initialised automatically when the application starts.
 
 1. Open **Food Inventory** and add donated food items.
 2. Open **Household Requests** and create a household request.
-3. Change the request status to **Approved**.
+3. Select the request and click **Approve Selected Request**.
 4. Open **Distribution Plan** and refresh the available choices.
 5. Create a distribution plan for the approved request.
-6. Change the plan status when appropriate.
+6. Select the plan and click **Complete Selected Plan** or **Cancel Selected Plan**.
 7. Review distribution totals and households served.
 8. Open **Dashboard** to review inventory and alert information.
 
@@ -205,6 +210,7 @@ The project has been checked using:
 
 ```powershell
 sbt clean compile
+sbt test
 ```
 
 The source-code audit confirmed:
@@ -213,7 +219,7 @@ The source-code audit confirmed:
 - No mutable collection imports
 - No direct JavaFX imports
 - No unsafe `Option.get` calls
-- 56 AI-assisted source references
+- Automated tests for completion, cancellation and legacy stock migration
 - Persistence of inventory, household requests and distribution plans after restart
 
 The final submission should also be tested using Java 21.
@@ -226,8 +232,8 @@ The AI interaction log records prompts, suggestions, student decisions and affec
 
 Current recorded evidence includes:
 
-- 45 entries in `ai/interaction_log.md`
-- 56 `// ai-assisted: #N` references in the Scala source code
+- 46 entries in `ai/interaction_log.md`
+- AI-assisted source references linked to matching log entries
 
 Full details are available in:
 

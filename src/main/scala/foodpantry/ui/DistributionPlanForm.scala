@@ -158,7 +158,7 @@ class DistributionPlanForm(
           ) =>
         // ai-assisted: #44
         // why: AI helped show remaining demand and stock after active allocations.
-        val activePlans =
+        val committedPlans =
           distributionPlans.filter(
             distributionPlan =>
               distributionPlan.status !=
@@ -166,7 +166,7 @@ class DistributionPlanForm(
           )
 
         val allocatedByRequest =
-          activePlans.groupMapReduce(
+          committedPlans.groupMapReduce(
             distributionPlan =>
               distributionPlan.householdRequestId
           )(
@@ -177,8 +177,14 @@ class DistributionPlanForm(
               firstQuantity + secondQuantity
           )
 
-        val allocatedByFoodItem =
-          activePlans.groupMapReduce(
+        val plannedByFoodItem =
+          distributionPlans
+            .filter(
+              distributionPlan =>
+                distributionPlan.status ==
+                  DistributionStatus.Planned
+            )
+            .groupMapReduce(
             distributionPlan =>
               distributionPlan.foodItemId
           )(
@@ -212,7 +218,7 @@ class DistributionPlanForm(
           foodItems.map: foodItem =>
             val availableQuantity =
               foodItem.quantity -
-                allocatedByFoodItem.getOrElse(
+                plannedByFoodItem.getOrElse(
                   foodItem.id,
                   0
                 )
@@ -400,3 +406,6 @@ class DistributionPlanForm(
 
     distributionDatePicker.value =
       LocalDate.now.plusDays(1)
+
+  def refreshChoices(): Unit =
+    loadChoices()

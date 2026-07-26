@@ -1,6 +1,8 @@
 package foodpantry.ui
 
 import foodpantry.model.{
+  DistributionPlan,
+  DistributionStatus,
   FoodItem,
   PerishableFood,
   ShelfStableFood
@@ -26,7 +28,9 @@ import scala.util.{Failure, Success, Try}
 // ai-assisted: #14
 // why: AI helped build a ScalaFX inventory table backed by the repository contract.
 class InventoryView(
-    private val repository: Repository[FoodItem]
+    private val repository: Repository[FoodItem],
+    private val distributionRepository:
+      Repository[DistributionPlan]
 ) extends VBox:
 
   private val foodItems =
@@ -168,20 +172,34 @@ class InventoryView(
       inventoryTable.selectionModel().selectedItem.value
     ) match
       case Some(foodItem) =>
-        if confirmDelete(foodItem) then
-          repository.delete(foodItem.id) match
-            case Success(true) =>
-              loadItems()
-              statusLabel.text =
-                s"${foodItem.name} was deleted successfully."
+        plannedQuantityFor(foodItem.id) match
+          case Success(plannedQuantity)
+              if plannedQuantity > 0 =>
+            statusLabel.text =
+              s"${foodItem.name} cannot be deleted because " +
+                s"$plannedQuantity ${foodItem.unit} are reserved " +
+                "by planned distributions."
 
-            case Success(false) =>
-              statusLabel.text =
-                "The selected food item was not found."
+          case Success(_) =>
+            if confirmDelete(foodItem) then
+              repository.delete(foodItem.id) match
+                case Success(true) =>
+                  loadItems()
+                  statusLabel.text =
+                    s"${foodItem.name} was deleted successfully."
 
-            case Failure(exception) =>
-              statusLabel.text =
-                s"Unable to delete item: ${exception.getMessage}"
+                case Success(false) =>
+                  statusLabel.text =
+                    "The selected food item was not found."
+
+                case Failure(exception) =>
+                  statusLabel.text =
+                    s"Unable to delete item: ${exception.getMessage}"
+
+          case Failure(exception) =>
+            statusLabel.text =
+              "Unable to check planned distributions: " +
+                exception.getMessage
 
       case None =>
         statusLabel.text =
@@ -228,19 +246,51 @@ class InventoryView(
           "Quantity must be greater than zero."
 
       case (Some(foodItem), Some(quantity)) =>
-        val updatedItem =
-          withQuantity(foodItem, quantity)
-
-        repository.update(updatedItem) match
-          case Success(savedItem) =>
-            loadItems()
-            newQuantityField.clear()
+        plannedQuantityFor(foodItem.id) match
+          case Success(plannedQuantity)
+              if quantity < plannedQuantity =>
             statusLabel.text =
-              s"${savedItem.name} quantity was updated to $quantity."
+              s"Quantity cannot be below the $plannedQuantity " +
+                s"${foodItem.unit} reserved for planned distributions."
 
           case Failure(exception) =>
             statusLabel.text =
-              s"Unable to update item: ${exception.getMessage}"
+              "Unable to check planned distributions: " +
+                exception.getMessage
+
+          case Success(_) =>
+            val updatedItem =
+              withQuantity(foodItem, quantity)
+
+            repository.update(updatedItem) match
+              case Success(savedItem) =>
+                loadItems()
+                newQuantityField.clear()
+                statusLabel.text =
+                  s"${savedItem.name} quantity was updated to $quantity."
+
+              case Failure(exception) =>
+                statusLabel.text =
+                  s"Unable to update item: ${exception.getMessage}"
+
+  // ai-assisted: #46
+  // why: AI helped protect stock already reserved by planned distributions.
+  private def plannedQuantityFor(
+      foodItemId: String
+  ): Try[Int] =
+    distributionRepository
+      .findAll()
+      .map: distributionPlans =>
+        distributionPlans
+          .filter: distributionPlan =>
+            distributionPlan.foodItemId == foodItemId &&
+              distributionPlan.status ==
+                DistributionStatus.Planned
+          .map(
+            distributionPlan =>
+              distributionPlan.allocatedQuantity
+          )
+          .sum
 
   private def withQuantity(
       foodItem: FoodItem,
