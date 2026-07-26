@@ -190,4 +190,9 @@
 - Connected the persistent distribution-planning feature to the main navigation.
 - Created a plan for `Test Family` using `Rice Pack` with quantity 3.
 - Restarted the application and confirmed that the distribution plan remained persisted.
+- Added status updating for selected distribution plans.
+- Added Planned, Completed and Cancelled status choices.
+- Used immutable `copy` to update the selected distribution plan.
+- Updated the `Test Family` plan from Planned to Completed.
+- Restarted the application and confirmed that the updated status remained persisted.
 

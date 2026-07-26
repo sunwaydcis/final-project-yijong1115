@@ -2,6 +2,7 @@ package foodpantry.ui
 
 import foodpantry.model.{
   DistributionPlan,
+  DistributionStatus,
   FoodItem,
   HouseholdRequest
 }
@@ -14,6 +15,7 @@ import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
   Button,
+  ComboBox,
   Label,
   TableColumn,
   TableView
@@ -43,7 +45,7 @@ class DistributionPlanView(
 
   private val distributionTable =
     new TableView[DistributionPlan](distributionPlans):
-      prefHeight = 400
+      prefHeight = 350
       columns ++= List(
         textColumn(
           "Household",
@@ -94,6 +96,24 @@ class DistributionPlanView(
         loadPlans()
       }
 
+  private val statusComboBox =
+    new ComboBox[String](
+      ObservableBuffer(
+        "Planned",
+        "Completed",
+        "Cancelled"
+      )
+    ):
+      promptText = "Select new status"
+
+  // ai-assisted: #40
+  // why: AI helped add safe status updates for selected immutable plans.
+  private val updateStatusButton =
+    new Button("Update Selected Status"):
+      onAction = handle {
+        updateSelectedStatus()
+      }
+
   spacing = 10
   padding = Insets(20)
 
@@ -101,6 +121,8 @@ class DistributionPlanView(
     new Label("Daily Distribution Plans"),
     distributionPlanForm,
     refreshButton,
+    statusComboBox,
+    updateStatusButton,
     distributionTable,
     statusLabel
   )
@@ -130,3 +152,67 @@ class DistributionPlanView(
       case Failure(exception) =>
         statusLabel.text =
           s"Unable to load distribution plans: ${exception.getMessage}"
+
+  private def updateSelectedStatus(): Unit =
+    val selectedPlan =
+      Option(
+        distributionTable
+          .selectionModel()
+          .selectedItem
+          .value
+      )
+
+    val selectedStatus =
+      Option(statusComboBox.value.value)
+        .flatMap(parseStatus)
+
+    (selectedPlan, selectedStatus) match
+      case (None, _) =>
+        statusLabel.text =
+          "Select a distribution plan before updating."
+
+      case (_, None) =>
+        statusLabel.text =
+          "Select a valid distribution status."
+
+      case (
+            Some(distributionPlan),
+            Some(distributionStatus)
+          ) =>
+        val updatedPlan =
+          distributionPlan.copy(
+            status = distributionStatus
+          )
+
+        distributionRepository
+          .update(updatedPlan) match
+          case Success(savedPlan) =>
+            loadPlans()
+
+            statusComboBox
+              .selectionModel()
+              .clearSelection()
+
+            statusLabel.text =
+              s"${savedPlan.householdName} distribution " +
+                s"status was updated to ${savedPlan.status}."
+
+          case Failure(exception) =>
+            statusLabel.text =
+              s"Unable to update plan: ${exception.getMessage}"
+
+  private def parseStatus(
+      statusValue: String
+  ): Option[DistributionStatus] =
+    statusValue match
+      case "Planned" =>
+        Some(DistributionStatus.Planned)
+
+      case "Completed" =>
+        Some(DistributionStatus.Completed)
+
+      case "Cancelled" =>
+        Some(DistributionStatus.Cancelled)
+
+      case _ =>
+        None
