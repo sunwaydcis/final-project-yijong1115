@@ -181,4 +181,9 @@
 - Prevented new plans for fulfilled requests and past distribution dates.
 - Used `Either[List[String], DistributionPlan]` to return all planning errors safely.
 - Confirmed the project compiled successfully.
+- Added the read-only `DistributionPlanView`.
+- Displayed household, food item, allocated quantity, unit, date and status using a ScalaFX table.
+- Loaded plans through the generic `Repository[DistributionPlan]` contract.
+- Added refresh and database-failure status handling.
+- Confirmed the project compiled successfully.
 
