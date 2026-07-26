@@ -157,4 +157,9 @@
 - Added allocated quantity, unit, distribution date and status fields.
 - Kept table creation idempotent using Derby metadata checks.
 - Confirmed the project compiled successfully.
+- Added `DistributionPlanMapper`.
+- Converted Derby rows into immutable `DistributionPlan` objects.
+- Used `Option`, `Either`, pattern matching and a `for` comprehension for safe mapping.
+- Added descriptive handling for missing dates and unsupported statuses.
+- Confirmed the project compiled successfully.
 
