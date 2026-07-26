@@ -173,4 +173,7 @@
 - Integrated distribution-plan validation and result-set mapping.
 - Used prepared statements, `Try` and immutable `List` results.
 - Confirmed the project compiled successfully.
+- Ran a forked distribution-plan repository smoke test.
+- Confirmed add, find, status update and delete operations all succeeded.
+- Removed the temporary smoke-test source file after verification.
 
