@@ -1,15 +1,18 @@
 package foodpantry
 
+import foodpantry.database.DatabaseInitializer
+import foodpantry.repository.DerbyFoodItemRepository
+import foodpantry.service.InventoryMonitoringService
+import foodpantry.ui.{DashboardView, InventoryView}
+
 import scalafx.Includes.*
 import scalafx.application.JFXApp3
 import scalafx.geometry.Insets
 import scalafx.scene.Scene
 import scalafx.scene.control.{Button, Label}
 import scalafx.scene.layout.{BorderPane, VBox}
-import foodpantry.database.DatabaseInitializer
+
 import scala.util.{Failure, Success}
-import foodpantry.repository.DerbyFoodItemRepository
-import foodpantry.ui.InventoryView
 
 object MainApp extends JFXApp3:
 
@@ -19,23 +22,23 @@ object MainApp extends JFXApp3:
     DatabaseInitializer.initialize() match
       case Success(_) =>
         println("Database initialized successfully.")
+
       case Failure(exception) =>
         println(
           s"Database initialization failed: ${exception.getMessage}"
         )
 
-    // ai-assisted: #5
-    // why: AI helped structure four placeholder panes and button navigation using ScalaFX.
-    val dashboardPane = new VBox:
-      spacing = 10
-      padding = Insets(20)
-      children = Seq(
-        new Label("Dashboard"),
-        new Label("Food pantry summary will be displayed here.")
-      )
-
     val foodItemRepository =
       new DerbyFoodItemRepository
+
+    val monitoringService =
+      new InventoryMonitoringService
+
+    val dashboardPane =
+      new DashboardView(
+        foodItemRepository,
+        monitoringService
+      )
 
     val inventoryPane =
       new InventoryView(foodItemRepository)
@@ -45,7 +48,9 @@ object MainApp extends JFXApp3:
       padding = Insets(20)
       children = Seq(
         new Label("Household Requests"),
-        new Label("Household food requests will be managed here.")
+        new Label(
+          "Household food requests will be managed here."
+        )
       )
 
     val distributionPane = new VBox:
@@ -53,34 +58,41 @@ object MainApp extends JFXApp3:
       padding = Insets(20)
       children = Seq(
         new Label("Distribution Plan"),
-        new Label("Daily food distribution plans will be prepared here.")
+        new Label(
+          "Daily food distribution plans will be prepared here."
+        )
       )
 
-    val rootPane = new BorderPane
+    val rootPane =
+      new BorderPane
 
-    val dashboardButton = new Button("Dashboard"):
-      maxWidth = Double.MaxValue
-      onAction = handle {
-        rootPane.center = dashboardPane
-      }
+    val dashboardButton =
+      new Button("Dashboard"):
+        maxWidth = Double.MaxValue
+        onAction = handle {
+          rootPane.center = dashboardPane
+        }
 
-    val inventoryButton = new Button("Food Inventory"):
-      maxWidth = Double.MaxValue
-      onAction = handle {
-        rootPane.center = inventoryPane
-      }
+    val inventoryButton =
+      new Button("Food Inventory"):
+        maxWidth = Double.MaxValue
+        onAction = handle {
+          rootPane.center = inventoryPane
+        }
 
-    val requestsButton = new Button("Household Requests"):
-      maxWidth = Double.MaxValue
-      onAction = handle {
-        rootPane.center = requestsPane
-      }
+    val requestsButton =
+      new Button("Household Requests"):
+        maxWidth = Double.MaxValue
+        onAction = handle {
+          rootPane.center = requestsPane
+        }
 
-    val distributionButton = new Button("Distribution Plan"):
-      maxWidth = Double.MaxValue
-      onAction = handle {
-        rootPane.center = distributionPane
-      }
+    val distributionButton =
+      new Button("Distribution Plan"):
+        maxWidth = Double.MaxValue
+        onAction = handle {
+          rootPane.center = distributionPane
+        }
 
     val navigationPane = new VBox:
       spacing = 10
@@ -98,7 +110,8 @@ object MainApp extends JFXApp3:
     rootPane.center = dashboardPane
 
     stage = new JFXApp3.PrimaryStage:
-      title = "Food Pantry Inventory and Demand Management System"
+      title =
+        "Food Pantry Inventory and Demand Management System"
       width = 1000
       height = 650
       scene = new Scene:

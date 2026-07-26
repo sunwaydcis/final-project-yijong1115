@@ -103,4 +103,8 @@
 - Used immutable collections, `Option`, `flatMap` and pattern matching.
 - Sorted expired and near-expiry alerts before low-stock alerts.
 - Confirmed the project compiled successfully.
+- Added `DashboardView` with total food records and total available quantity.
+- Connected the dashboard to `InventoryMonitoringService`.
+- Confirmed persisted inventory totals displayed correctly.
+- Added a temporary low-stock item and verified that its alert appeared after refreshing the dashboard.
 
