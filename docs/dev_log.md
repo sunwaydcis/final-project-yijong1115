@@ -107,4 +107,8 @@
 - Connected the dashboard to `InventoryMonitoringService`.
 - Confirmed persisted inventory totals displayed correctly.
 - Added a temporary low-stock item and verified that its alert appeared after refreshing the dashboard.
+- Added the immutable `HouseholdRequest` model.
+- Added `RequestStatus` values for pending, approved and fulfilled requests.
+- Stored household size, requested category, quantity and request date.
+- Confirmed the project compiled successfully.
 
