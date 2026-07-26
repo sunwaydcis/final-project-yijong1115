@@ -8,38 +8,77 @@ import scala.util.Try
 object DatabaseInitializer:
 
   // Kept private so table naming remains controlled by the persistence layer.
-  private val foodItemsTableName = "FOOD_ITEMS"
+  private val foodItemsTableName =
+    "FOOD_ITEMS"
+
+  private val householdRequestsTableName =
+    "HOUSEHOLD_REQUESTS"
 
   def initialize(): Try[Unit] =
     DatabaseManager.withConnection: connection =>
-      if !tableExists(connection, foodItemsTableName) then
-        val statement = connection.createStatement()
+      createFoodItemsTable(connection)
+      createHouseholdRequestsTable(connection)
 
-        try
-          statement.executeUpdate(
-            """
-              |CREATE TABLE FOOD_ITEMS (
-              |  ID VARCHAR(36) PRIMARY KEY,
-              |  ITEM_TYPE VARCHAR(30) NOT NULL,
-              |  NAME VARCHAR(100) NOT NULL,
-              |  CATEGORY VARCHAR(50) NOT NULL,
-              |  QUANTITY INT NOT NULL,
-              |  UNIT VARCHAR(30) NOT NULL,
-              |  EXPIRY_DATE DATE
-              |)
-              |""".stripMargin
-          )
-        finally
-          statement.close()
+  private def createFoodItemsTable(
+      connection: Connection
+  ): Unit =
+    if !tableExists(connection, foodItemsTableName) then
+      val statement = connection.createStatement()
 
-      ()
+      try
+        statement.executeUpdate(
+          """
+            |CREATE TABLE FOOD_ITEMS (
+            |  ID VARCHAR(36) PRIMARY KEY,
+            |  ITEM_TYPE VARCHAR(30) NOT NULL,
+            |  NAME VARCHAR(100) NOT NULL,
+            |  CATEGORY VARCHAR(50) NOT NULL,
+            |  QUANTITY INT NOT NULL,
+            |  UNIT VARCHAR(30) NOT NULL,
+            |  EXPIRY_DATE DATE
+            |)
+            |""".stripMargin
+        )
+      finally
+        statement.close()
+
+  // ai-assisted: #22
+  // why: AI helped extend the initializer with persistent household requests.
+  private def createHouseholdRequestsTable(
+      connection: Connection
+  ): Unit =
+    if !tableExists(
+        connection,
+        householdRequestsTableName
+      )
+    then
+      val statement = connection.createStatement()
+
+      try
+        statement.executeUpdate(
+          """
+            |CREATE TABLE HOUSEHOLD_REQUESTS (
+            |  ID VARCHAR(36) PRIMARY KEY,
+            |  HOUSEHOLD_NAME VARCHAR(100) NOT NULL,
+            |  HOUSEHOLD_SIZE INT NOT NULL,
+            |  REQUESTED_CATEGORY VARCHAR(50) NOT NULL,
+            |  REQUESTED_QUANTITY INT NOT NULL,
+            |  REQUEST_DATE DATE NOT NULL,
+            |  STATUS VARCHAR(20) NOT NULL
+            |)
+            |""".stripMargin
+        )
+      finally
+        statement.close()
 
   private def tableExists(
       connection: Connection,
       tableName: String
   ): Boolean =
     val resultSet =
-      connection.getMetaData.getTables(null, null, tableName, null)
+      connection
+        .getMetaData
+        .getTables(null, null, tableName, null)
 
     try
       resultSet.next()

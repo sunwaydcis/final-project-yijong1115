@@ -111,4 +111,8 @@
 - Added `RequestStatus` values for pending, approved and fulfilled requests.
 - Stored household size, requested category, quantity and request date.
 - Confirmed the project compiled successfully.
+- Extended `DatabaseInitializer` with the persistent `HOUSEHOLD_REQUESTS` table.
+- Stored household details, requested category, quantity, date and request status.
+- Kept table creation idempotent using Derby metadata checks.
+- Confirmed the project compiled successfully.
 
