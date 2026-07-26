@@ -195,4 +195,9 @@
 - Used immutable `copy` to update the selected distribution plan.
 - Updated the `Test Family` plan from Planned to Completed.
 - Restarted the application and confirmed that the updated status remained persisted.
+- Added `DistributionReportService` and immutable `DistributionReport`.
+- Calculated total, planned, completed and cancelled distribution plans.
+- Counted unique households served through completed distributions.
+- Used `groupMapReduce`, `filter`, `map` and `distinct`.
+- Confirmed the project compiled successfully.
 
