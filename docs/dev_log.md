@@ -168,4 +168,9 @@
 - Required allocated quantity to be greater than zero.
 - Used `Either[List[String], DistributionPlan]` to return all validation errors safely.
 - Confirmed the project compiled successfully.
+- Added `DerbyDistributionPlanRepository`.
+- Implemented add, update, delete, find-by-ID and find-all operations.
+- Integrated distribution-plan validation and result-set mapping.
+- Used prepared statements, `Try` and immutable `List` results.
+- Confirmed the project compiled successfully.
 
