@@ -115,4 +115,9 @@
 - Stored household details, requested category, quantity, date and request status.
 - Kept table creation idempotent using Derby metadata checks.
 - Confirmed the project compiled successfully.
+- Added `HouseholdRequestMapper`.
+- Converted Derby rows into immutable `HouseholdRequest` objects.
+- Used `Option`, `Either`, pattern matching and a `for` comprehension for safe mapping.
+- Added descriptive handling for missing dates and unsupported statuses.
+- Confirmed the project compiled successfully.
 
