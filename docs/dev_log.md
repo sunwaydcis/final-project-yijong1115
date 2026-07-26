@@ -120,4 +120,9 @@
 - Used `Option`, `Either`, pattern matching and a `for` comprehension for safe mapping.
 - Added descriptive handling for missing dates and unsupported statuses.
 - Confirmed the project compiled successfully.
+- Added `HouseholdRequestValidator`.
+- Checked required request ID, household name and requested category fields.
+- Added positive-value validation for household size and requested quantity.
+- Used `Either[List[String], HouseholdRequest]` to return all validation errors safely.
+- Confirmed the project compiled successfully.
 
