@@ -147,4 +147,9 @@
 - Used immutable `copy` to update the selected request.
 - Updated `Test Family` from Pending to Approved.
 - Restarted the application and confirmed that the updated status remained persisted.
+- Added the immutable `DistributionPlan` model.
+- Added Planned, Completed and Cancelled distribution statuses.
+- Linked each plan to a household request and inventory food item.
+- Stored the allocated quantity, unit and distribution date.
+- Confirmed the project compiled successfully.
 
