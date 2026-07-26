@@ -11,13 +11,13 @@ import scalafx.beans.property.StringProperty
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
-  Button,
   ComboBox,
   Label,
   TableColumn,
   TableView
 }
 import scalafx.scene.layout.VBox
+import scalafx.scene.layout.{FlowPane, Priority}
 
 import scala.util.{Failure, Success}
 
@@ -31,11 +31,17 @@ class HouseholdRequestView(
     ObservableBuffer.empty[HouseholdRequest]
 
   private val statusLabel =
-    new Label("Household requests have not been loaded.")
+    UiComponents.statusLabel(
+      "Household requests have not been loaded."
+    )
 
   private val requestTable =
     new TableView[HouseholdRequest](householdRequests):
-      prefHeight = 420
+      prefHeight = 390
+      placeholder =
+        new Label(
+          "No household requests yet. Use the form above to add one."
+        )
       columns ++= List(
         textColumn(
           "Household",
@@ -76,10 +82,11 @@ class HouseholdRequestView(
     )
 
   private val refreshButton =
-    new Button("Refresh Requests"):
-      onAction = handle {
-        loadRequests()
-      }
+    UiComponents.secondaryButton("Refresh")
+
+  refreshButton.onAction = handle {
+    loadRequests()
+  }
 
   private val statusComboBox =
     new ComboBox[String](
@@ -94,20 +101,42 @@ class HouseholdRequestView(
   // ai-assisted: #29
   // why: AI helped add safe status updates for selected immutable requests.
   private val updateStatusButton =
-    new Button("Update Selected Status"):
-      onAction = handle {
-        updateSelectedStatus()
-      }
+    UiComponents.primaryButton("Update Status")
 
-  spacing = 10
-  padding = Insets(20)
+  updateStatusButton.onAction = handle {
+    updateSelectedStatus()
+  }
+
+  private val requestActions =
+    new FlowPane:
+      hgap = 10
+      vgap = 10
+      styleClass += "action-bar"
+      children = Seq(
+        refreshButton,
+        statusComboBox,
+        updateStatusButton
+      )
+
+  // ai-assisted: #45
+  // why: AI helped group request actions and explain the workflow more clearly.
+  spacing = 14
+  padding = Insets(24)
+  styleClass += "page"
+
+  VBox.setVgrow(requestTable, Priority.Always)
 
   children = Seq(
-    new Label("Household Food Requests"),
-    householdRequestForm,
-    refreshButton,
-    statusComboBox,
-    updateStatusButton,
+    UiComponents.pageTitle("Household Requests"),
+    UiComponents.pageDescription(
+      "Register household needs, then approve requests before planning distributions."
+    ),
+    UiComponents.formSection(
+      "Register a household request",
+      householdRequestForm
+    ),
+    UiComponents.sectionTitle("Request records"),
+    requestActions,
     requestTable,
     statusLabel
   )

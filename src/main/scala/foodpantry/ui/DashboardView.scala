@@ -7,8 +7,8 @@ import foodpantry.service.InventoryMonitoringService
 import scalafx.Includes.*
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
-import scalafx.scene.control.{Button, Label, ListView}
-import scalafx.scene.layout.VBox
+import scalafx.scene.control.{Label, ListView}
+import scalafx.scene.layout.{FlowPane, Priority, VBox}
 
 import scala.util.{Failure, Success}
 
@@ -20,35 +20,58 @@ class DashboardView(
 ) extends VBox:
 
   private val totalItemsLabel =
-    new Label("Food records: 0")
+    new Label("Food records: 0"):
+      styleClass += "summary-card"
 
   private val totalQuantityLabel =
-    new Label("Total quantity: 0")
+    new Label("Total quantity: 0"):
+      styleClass += "summary-card"
+
+  private val summaryPane =
+    new FlowPane:
+      hgap = 12
+      vgap = 10
+      children = Seq(
+        totalItemsLabel,
+        totalQuantityLabel
+      )
 
   private val alertMessages =
     ObservableBuffer.empty[String]
 
   private val alertList =
     new ListView[String](alertMessages):
-      prefHeight = 350
+      prefHeight = 380
+      placeholder =
+        new Label("No inventory alerts to display.")
 
   private val statusLabel =
-    new Label("Dashboard has not been loaded.")
+    UiComponents.statusLabel(
+      "Dashboard has not been loaded."
+    )
 
   private val refreshButton =
-    new Button("Refresh Dashboard"):
-      onAction = handle {
-        refreshDashboard()
-      }
+    UiComponents.secondaryButton("Refresh Dashboard")
 
-  spacing = 10
-  padding = Insets(20)
+  refreshButton.onAction = handle {
+    refreshDashboard()
+  }
+
+  // ai-assisted: #45
+  // why: AI helped reorganise the dashboard into clear summary and alert sections.
+  spacing = 14
+  padding = Insets(24)
+  styleClass += "page"
+
+  VBox.setVgrow(alertList, Priority.Always)
 
   children = Seq(
-    new Label("Food Pantry Dashboard"),
-    totalItemsLabel,
-    totalQuantityLabel,
-    new Label("Inventory Alerts"),
+    UiComponents.pageTitle("Dashboard"),
+    UiComponents.pageDescription(
+      "Review current stock totals and items that need attention."
+    ),
+    summaryPane,
+    UiComponents.sectionTitle("Inventory alerts"),
     refreshButton,
     alertList,
     statusLabel

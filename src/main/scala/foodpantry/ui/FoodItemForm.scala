@@ -7,13 +7,15 @@ import scalafx.Includes.*
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
-  Button,
   ComboBox,
   DatePicker,
-  Label,
   TextField
 }
-import scalafx.scene.layout.GridPane
+import scalafx.scene.layout.{
+  ColumnConstraints,
+  GridPane,
+  Priority
+}
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
@@ -28,64 +30,86 @@ class FoodItemForm(
   private val itemTypeComboBox =
     new ComboBox[String](
       ObservableBuffer("Perishable", "Shelf Stable")
-    )
+    ):
+      maxWidth = Double.MaxValue
+      promptText = "Choose food type"
 
   private val nameField =
     new TextField:
-      promptText = "Food name"
+      promptText = "Example: Rice pack"
 
   private val categoryField =
     new TextField:
-      promptText = "Category"
+      promptText = "Example: Grains"
 
   private val quantityField =
     new TextField:
-      promptText = "Quantity"
+      promptText = "Whole number"
 
   private val unitField =
     new TextField:
-      promptText = "Unit, for example cartons"
+      promptText = "Example: packs or cartons"
 
   private val expiryDatePicker =
     new DatePicker:
       promptText = "Expiry or best-before date"
+      maxWidth = Double.MaxValue
 
   private val statusLabel =
-    new Label("Enter the food item details.")
+    UiComponents.statusLabel(
+      "Complete the fields below, then select Add Food Item."
+    )
 
   private val addButton =
-    new Button("Add Food Item"):
-      defaultButton = true
-      onAction = handle {
-        saveFoodItem()
-      }
+    UiComponents.primaryButton("Add Food Item")
+
+  addButton.defaultButton = true
+  addButton.onAction = handle {
+    saveFoodItem()
+  }
 
   itemTypeComboBox.selectionModel().selectFirst()
 
-  hgap = 10
-  vgap = 10
-  padding = Insets(10)
+  // ai-assisted: #45
+  // why: AI helped improve form guidance, spacing and responsive field sizing.
+  hgap = 12
+  vgap = 11
+  padding = Insets(14)
+  styleClass += "form-grid"
 
-  add(new Label("Type"), 0, 0)
+  val labelColumn =
+    new ColumnConstraints:
+      minWidth = 125
+
+  val inputColumn =
+    new ColumnConstraints:
+      minWidth = 260
+      hgrow = Priority.Always
+      fillWidth = true
+
+  columnConstraints ++=
+    Seq(labelColumn, inputColumn)
+
+  add(UiComponents.fieldLabel("Type"), 0, 0)
   add(itemTypeComboBox, 1, 0)
 
-  add(new Label("Name"), 0, 1)
+  add(UiComponents.fieldLabel("Food name"), 0, 1)
   add(nameField, 1, 1)
 
-  add(new Label("Category"), 0, 2)
+  add(UiComponents.fieldLabel("Category"), 0, 2)
   add(categoryField, 1, 2)
 
-  add(new Label("Quantity"), 0, 3)
+  add(UiComponents.fieldLabel("Quantity"), 0, 3)
   add(quantityField, 1, 3)
 
-  add(new Label("Unit"), 0, 4)
+  add(UiComponents.fieldLabel("Unit"), 0, 4)
   add(unitField, 1, 4)
 
-  add(new Label("Expiry Date"), 0, 5)
+  add(UiComponents.fieldLabel("Expiry date"), 0, 5)
   add(expiryDatePicker, 1, 5)
 
   add(addButton, 1, 6)
-  add(statusLabel, 1, 7)
+  add(statusLabel, 0, 7, 2, 1)
 
   private def saveFoodItem(): Unit =
     createFoodItem() match

@@ -9,12 +9,14 @@ import foodpantry.repository.Repository
 import scalafx.Includes.*
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
-  Button,
   DatePicker,
-  Label,
   TextField
 }
-import scalafx.scene.layout.GridPane
+import scalafx.scene.layout.{
+  ColumnConstraints,
+  GridPane,
+  Priority
+}
 
 import java.time.LocalDate
 import java.util.UUID
@@ -29,55 +31,75 @@ class HouseholdRequestForm(
 
   private val householdNameField =
     new TextField:
-      promptText = "Household name"
+      promptText = "Example: Ahmad family"
 
   private val householdSizeField =
     new TextField:
-      promptText = "Number of household members"
+      promptText = "Whole number of people"
 
   private val requestedCategoryField =
     new TextField:
-      promptText = "Requested food category"
+      promptText = "Example: Grains"
 
   private val requestedQuantityField =
     new TextField:
-      promptText = "Requested quantity"
+      promptText = "Whole number"
 
   private val requestDatePicker =
     new DatePicker:
       value = LocalDate.now
+      maxWidth = Double.MaxValue
 
   private val statusLabel =
-    new Label("Enter the household request details.")
+    UiComponents.statusLabel(
+      "New requests begin with Pending status."
+    )
 
   private val addButton =
-    new Button("Add Household Request"):
-      defaultButton = true
-      onAction = handle {
-        saveRequest()
-      }
+    UiComponents.primaryButton("Add Household Request")
 
-  hgap = 10
-  vgap = 10
-  padding = Insets(10)
+  addButton.defaultButton = true
+  addButton.onAction = handle {
+    saveRequest()
+  }
 
-  add(new Label("Household Name"), 0, 0)
+  // ai-assisted: #45
+  // why: AI helped improve request-form guidance and responsive layout.
+  hgap = 12
+  vgap = 11
+  padding = Insets(14)
+  styleClass += "form-grid"
+
+  val labelColumn =
+    new ColumnConstraints:
+      minWidth = 150
+
+  val inputColumn =
+    new ColumnConstraints:
+      minWidth = 260
+      hgrow = Priority.Always
+      fillWidth = true
+
+  columnConstraints ++=
+    Seq(labelColumn, inputColumn)
+
+  add(UiComponents.fieldLabel("Household name"), 0, 0)
   add(householdNameField, 1, 0)
 
-  add(new Label("Household Size"), 0, 1)
+  add(UiComponents.fieldLabel("Household size"), 0, 1)
   add(householdSizeField, 1, 1)
 
-  add(new Label("Requested Category"), 0, 2)
+  add(UiComponents.fieldLabel("Food category"), 0, 2)
   add(requestedCategoryField, 1, 2)
 
-  add(new Label("Requested Quantity"), 0, 3)
+  add(UiComponents.fieldLabel("Requested quantity"), 0, 3)
   add(requestedQuantityField, 1, 3)
 
-  add(new Label("Request Date"), 0, 4)
+  add(UiComponents.fieldLabel("Request date"), 0, 4)
   add(requestDatePicker, 1, 4)
 
   add(addButton, 1, 5)
-  add(statusLabel, 1, 6)
+  add(statusLabel, 0, 6, 2, 1)
 
   private def saveRequest(): Unit =
     createRequest() match

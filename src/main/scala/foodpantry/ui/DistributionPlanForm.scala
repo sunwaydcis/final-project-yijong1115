@@ -2,24 +2,27 @@ package foodpantry.ui
 
 import foodpantry.model.{
   DistributionPlan,
+  DistributionStatus,
   FoodItem,
   HouseholdRequest,
   RequestStatus
 }
 import foodpantry.repository.Repository
-import foodpantry.service.DistributionPlanningService
+import foodpantry.service.DistributionAllocationService
 
 import scalafx.Includes.*
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
-  Button,
   ComboBox,
   DatePicker,
-  Label,
   TextField
 }
-import scalafx.scene.layout.GridPane
+import scalafx.scene.layout.{
+  ColumnConstraints,
+  GridPane,
+  Priority
+}
 
 import java.time.LocalDate
 import scala.util.{Failure, Success, Try}
@@ -33,8 +36,8 @@ class DistributionPlanForm(
       Repository[FoodItem],
     private val distributionRepository:
       Repository[DistributionPlan],
-    private val planningService:
-      DistributionPlanningService,
+    private val allocationService:
+      DistributionAllocationService,
     private val onSaved: () => Unit
 ) extends GridPane:
 
@@ -53,97 +56,204 @@ class DistributionPlanForm(
   private val requestComboBox =
     new ComboBox[String](requestLabels):
       promptText = "Select an approved request"
+      maxWidth = Double.MaxValue
 
   private val foodItemComboBox =
     new ComboBox[String](foodItemLabels):
       promptText = "Select available food"
+      maxWidth = Double.MaxValue
 
   private val allocatedQuantityField =
     new TextField:
-      promptText = "Allocated quantity"
+      promptText = "Whole number"
 
   private val distributionDatePicker =
     new DatePicker:
       value = LocalDate.now.plusDays(1)
+      maxWidth = Double.MaxValue
 
   private val statusLabel =
-    new Label("Select a request and food item.")
+    UiComponents.statusLabel(
+      "Only approved requests and unallocated food are shown."
+    )
 
   private val refreshChoicesButton =
-    new Button("Refresh Choices"):
-      onAction = handle {
-        loadChoices()
-      }
+    UiComponents.secondaryButton("Refresh Choices")
 
   private val createPlanButton =
-    new Button("Create Distribution Plan"):
-      defaultButton = true
-      onAction = handle {
-        savePlan()
-      }
+    UiComponents.primaryButton(
+      "Create Distribution Plan"
+    )
 
-  hgap = 10
-  vgap = 10
-  padding = Insets(10)
+  refreshChoicesButton.onAction = handle {
+    loadChoices()
+  }
 
-  add(new Label("Household Request"), 0, 0)
+  createPlanButton.defaultButton = true
+  createPlanButton.onAction = handle {
+    savePlan()
+  }
+
+  // ai-assisted: #45
+  // why: AI helped clarify allocation choices and improve form responsiveness.
+  hgap = 12
+  vgap = 11
+  padding = Insets(14)
+  styleClass += "form-grid"
+
+  val labelColumn =
+    new ColumnConstraints:
+      minWidth = 160
+
+  val inputColumn =
+    new ColumnConstraints:
+      minWidth = 340
+      hgrow = Priority.Always
+      fillWidth = true
+
+  columnConstraints ++=
+    Seq(labelColumn, inputColumn)
+
+  add(
+    UiComponents.fieldLabel("Household request"),
+    0,
+    0
+  )
   add(requestComboBox, 1, 0)
 
-  add(new Label("Food Item"), 0, 1)
+  add(UiComponents.fieldLabel("Food item"), 0, 1)
   add(foodItemComboBox, 1, 1)
 
-  add(new Label("Allocated Quantity"), 0, 2)
+  add(
+    UiComponents.fieldLabel("Allocated quantity"),
+    0,
+    2
+  )
   add(allocatedQuantityField, 1, 2)
 
-  add(new Label("Distribution Date"), 0, 3)
+  add(
+    UiComponents.fieldLabel("Distribution date"),
+    0,
+    3
+  )
   add(distributionDatePicker, 1, 3)
 
   add(refreshChoicesButton, 0, 4)
   add(createPlanButton, 1, 4)
 
-  add(statusLabel, 1, 5)
+  add(statusLabel, 0, 5, 2, 1)
 
   loadChoices()
 
   private def loadChoices(): Unit =
     (
       requestRepository.findAll(),
-      foodItemRepository.findAll()
+      foodItemRepository.findAll(),
+      distributionRepository.findAll()
     ) match
       case (
             Success(householdRequests),
-            Success(foodItems)
+            Success(foodItems),
+            Success(distributionPlans)
           ) =>
-        val approvedRequests =
+        // ai-assisted: #44
+        // why: AI helped show remaining demand and stock after active allocations.
+        val activePlans =
+          distributionPlans.filter(
+            distributionPlan =>
+              distributionPlan.status !=
+                DistributionStatus.Cancelled
+          )
+
+        val allocatedByRequest =
+          activePlans.groupMapReduce(
+            distributionPlan =>
+              distributionPlan.householdRequestId
+          )(
+            distributionPlan =>
+              distributionPlan.allocatedQuantity
+          )(
+            (firstQuantity, secondQuantity) =>
+              firstQuantity + secondQuantity
+          )
+
+        val allocatedByFoodItem =
+          activePlans.groupMapReduce(
+            distributionPlan =>
+              distributionPlan.foodItemId
+          )(
+            distributionPlan =>
+              distributionPlan.allocatedQuantity
+          )(
+            (firstQuantity, secondQuantity) =>
+              firstQuantity + secondQuantity
+          )
+
+        val availableRequests =
           householdRequests.filter(
             householdRequest =>
               householdRequest.status ==
                 RequestStatus.Approved
+          ).map: householdRequest =>
+            val remainingQuantity =
+              householdRequest.requestedQuantity -
+                allocatedByRequest.getOrElse(
+                  householdRequest.id,
+                  0
+                )
+
+            householdRequest -> remainingQuantity
+          .filter(
+            requestWithRemainingQuantity =>
+              requestWithRemainingQuantity._2 > 0
           )
 
         val availableFoodItems =
-          foodItems.filter(
-            foodItem => foodItem.quantity > 0
+          foodItems.map: foodItem =>
+            val availableQuantity =
+              foodItem.quantity -
+                allocatedByFoodItem.getOrElse(
+                  foodItem.id,
+                  0
+                )
+
+            foodItem -> availableQuantity
+          .filter(
+            foodItemWithAvailableQuantity =>
+              foodItemWithAvailableQuantity._2 > 0
           )
 
         requestOptions.clear()
-        requestOptions ++= approvedRequests
+        requestOptions ++=
+          availableRequests.map(
+            requestWithRemainingQuantity =>
+              requestWithRemainingQuantity._1
+          )
 
         requestLabels.clear()
         requestLabels ++=
-          approvedRequests.map: householdRequest =>
+          availableRequests.map:
+            case (
+                  householdRequest,
+                  remainingQuantity
+                ) =>
             s"${householdRequest.householdName} - " +
               s"${householdRequest.requestedCategory} " +
-              s"(${householdRequest.requestedQuantity})"
+              s"($remainingQuantity remaining)"
 
         foodItemOptions.clear()
-        foodItemOptions ++= availableFoodItems
+        foodItemOptions ++=
+          availableFoodItems.map(
+            foodItemWithAvailableQuantity =>
+              foodItemWithAvailableQuantity._1
+          )
 
         foodItemLabels.clear()
         foodItemLabels ++=
-          availableFoodItems.map: foodItem =>
+          availableFoodItems.map:
+            case (foodItem, availableQuantity) =>
             s"${foodItem.name} - ${foodItem.category} " +
-              s"(${foodItem.quantity} ${foodItem.unit})"
+              s"($availableQuantity ${foodItem.unit} available)"
 
         requestComboBox
           .selectionModel()
@@ -154,39 +264,60 @@ class DistributionPlanForm(
           .clearSelection()
 
         statusLabel.text =
-          s"${approvedRequests.size} approved request(s) and " +
+          s"${availableRequests.size} approved request(s) and " +
             s"${availableFoodItems.size} food item(s) available."
 
-      case (Failure(exception), _) =>
+      case (Failure(exception), _, _) =>
         statusLabel.text =
           s"Unable to load requests: ${exception.getMessage}"
 
-      case (_, Failure(exception)) =>
+      case (_, Failure(exception), _) =>
         statusLabel.text =
           s"Unable to load food items: ${exception.getMessage}"
 
+      case (_, _, Failure(exception)) =>
+        statusLabel.text =
+          s"Unable to load distribution plans: ${exception.getMessage}"
+
   private def savePlan(): Unit =
-    createPlan() match
+    createAllocation() match
       case Left(message) =>
         statusLabel.text = message
 
-      case Right(distributionPlan) =>
-        distributionRepository
-          .add(distributionPlan) match
+      case Right(
+            (
+              householdRequest,
+              foodItem,
+              allocatedQuantity,
+              distributionDate
+            )
+          ) =>
+        // ai-assisted: #44
+        // why: AI helped replace direct saving with one atomic allocation operation.
+        allocationService
+          .allocate(
+            householdRequest.id,
+            foodItem.id,
+            allocatedQuantity,
+            distributionDate
+          ) match
           case Success(savedPlan) =>
             statusLabel.text =
               s"Plan for ${savedPlan.householdName} " +
                 "was created successfully."
 
             clearForm()
+            loadChoices()
             onSaved()
 
           case Failure(exception) =>
             statusLabel.text =
               s"Unable to create plan: ${exception.getMessage}"
 
-  private def createPlan()
-      : Either[String, DistributionPlan] =
+  private def createAllocation(): Either[
+    String,
+    (HouseholdRequest, FoodItem, Int, LocalDate)
+  ] =
     val selectedHouseholdRequest =
       requestOptions
         .toList
@@ -231,18 +362,13 @@ class DistributionPlanForm(
             "Distribution date is required."
           )
 
-      distributionPlan <-
-        planningService
-          .createPlan(
-            householdRequest,
-            foodItem,
-            allocatedQuantity,
-            distributionDate
-          )
-          .left
-          .map(errors => errors.mkString(" "))
     yield
-      distributionPlan
+      (
+        householdRequest,
+        foodItem,
+        allocatedQuantity,
+        distributionDate
+      )
 
   private def parsePositiveInteger(
       input: String

@@ -22,12 +22,35 @@ class DistributionPlanningService:
       distributionDate: LocalDate,
       today: LocalDate = LocalDate.now
   ): Either[List[String], DistributionPlan] =
+    createPlanWithAvailability(
+      householdRequest,
+      foodItem,
+      allocatedQuantity,
+      distributionDate,
+      foodItem.quantity,
+      householdRequest.requestedQuantity,
+      today
+    )
+
+  // ai-assisted: #44
+  // why: AI helped validate against live unallocated stock and remaining demand.
+  def createPlanWithAvailability(
+      householdRequest: HouseholdRequest,
+      foodItem: FoodItem,
+      allocatedQuantity: Int,
+      distributionDate: LocalDate,
+      availableFoodQuantity: Int,
+      remainingRequestedQuantity: Int,
+      today: LocalDate = LocalDate.now
+  ): Either[List[String], DistributionPlan] =
     val errors =
       validationErrors(
         householdRequest,
         foodItem,
         allocatedQuantity,
         distributionDate,
+        availableFoodQuantity,
+        remainingRequestedQuantity,
         today
       )
 
@@ -52,6 +75,8 @@ class DistributionPlanningService:
       foodItem: FoodItem,
       allocatedQuantity: Int,
       distributionDate: LocalDate,
+      availableFoodQuantity: Int,
+      remainingRequestedQuantity: Int,
       today: LocalDate
   ): List[String] =
     List(
@@ -59,17 +84,17 @@ class DistributionPlanningService:
         "Allocated quantity must be greater than zero."
       ),
       Option.when(
-        allocatedQuantity > foodItem.quantity
+        allocatedQuantity > availableFoodQuantity
       )(
-        s"Only ${foodItem.quantity} ${foodItem.unit} " +
+        s"Only $availableFoodQuantity ${foodItem.unit} " +
           s"of ${foodItem.name} are available."
       ),
       Option.when(
         allocatedQuantity >
-          householdRequest.requestedQuantity
+          remainingRequestedQuantity
       )(
         "Allocated quantity cannot exceed the " +
-          "household's requested quantity."
+          s"remaining requested quantity of $remainingRequestedQuantity."
       ),
       Option.when(
         !foodItem.category.equalsIgnoreCase(
@@ -80,10 +105,10 @@ class DistributionPlanningService:
           s"category ${householdRequest.requestedCategory}."
       ),
       Option.when(
-        householdRequest.status == RequestStatus.Fulfilled
+        householdRequest.status != RequestStatus.Approved
       )(
-        "A fulfilled household request cannot receive " +
-          "another distribution plan."
+        "Only an approved household request can receive " +
+          "a distribution plan."
       ),
       Option.when(distributionDate.isBefore(today))(
         "Distribution date cannot be in the past."

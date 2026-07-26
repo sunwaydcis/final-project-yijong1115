@@ -8,7 +8,7 @@ import foodpantry.model.{
 }
 import foodpantry.repository.Repository
 import foodpantry.service.{
-  DistributionPlanningService,
+  DistributionAllocationService,
   DistributionReportService
 }
 
@@ -17,13 +17,12 @@ import scalafx.beans.property.StringProperty
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
-  Button,
   ComboBox,
   Label,
   TableColumn,
   TableView
 }
-import scalafx.scene.layout.{FlowPane, VBox}
+import scalafx.scene.layout.{FlowPane, Priority, VBox}
 
 import scala.util.{Failure, Success}
 
@@ -36,30 +35,37 @@ class DistributionPlanView(
       Repository[HouseholdRequest],
     private val foodItemRepository:
       Repository[FoodItem],
-    private val planningService:
-      DistributionPlanningService
+    private val allocationService:
+      DistributionAllocationService
 ) extends VBox:
 
   private val distributionPlans =
     ObservableBuffer.empty[DistributionPlan]
 
   private val statusLabel =
-    new Label("Distribution plans have not been loaded.")
+    UiComponents.statusLabel(
+      "Distribution plans have not been loaded."
+    )
 
   private val totalPlansLabel =
-    new Label("Total plans: 0")
+    new Label("Total plans: 0"):
+      styleClass += "summary-card"
 
   private val plannedPlansLabel =
-    new Label("Planned: 0")
+    new Label("Planned: 0"):
+      styleClass += "summary-card"
 
   private val completedPlansLabel =
-    new Label("Completed: 0")
+    new Label("Completed: 0"):
+      styleClass += "summary-card"
 
   private val cancelledPlansLabel =
-    new Label("Cancelled: 0")
+    new Label("Cancelled: 0"):
+      styleClass += "summary-card"
 
   private val householdsServedLabel =
-    new Label("Unique households served: 0")
+    new Label("Households served: 0"):
+      styleClass += "summary-card"
 
   // ai-assisted: #43
   // why: AI helped replace a compressed multiline label with a wrapping summary panel.
@@ -80,7 +86,11 @@ class DistributionPlanView(
 
   private val distributionTable =
     new TableView[DistributionPlan](distributionPlans):
-      prefHeight = 350
+      prefHeight = 390
+      placeholder =
+        new Label(
+          "No distribution plans yet. Approved requests will appear in the form above."
+        )
 
       columns ++= List(
         textColumn(
@@ -122,15 +132,16 @@ class DistributionPlanView(
       requestRepository,
       foodItemRepository,
       distributionRepository,
-      planningService,
+      allocationService,
       () => loadPlans()
     )
 
   private val refreshButton =
-    new Button("Refresh Distribution Plans"):
-      onAction = handle {
-        loadPlans()
-      }
+    UiComponents.secondaryButton("Refresh")
+
+  refreshButton.onAction = handle {
+    loadPlans()
+  }
 
   private val statusComboBox =
     new ComboBox[String](
@@ -145,22 +156,44 @@ class DistributionPlanView(
   // ai-assisted: #40
   // why: AI helped add safe status updates for selected immutable plans.
   private val updateStatusButton =
-    new Button("Update Selected Status"):
-      onAction = handle {
-        updateSelectedStatus()
-      }
+    UiComponents.primaryButton("Update Status")
 
-  spacing = 10
-  padding = Insets(20)
+  updateStatusButton.onAction = handle {
+    updateSelectedStatus()
+  }
+
+  private val planActions =
+    new FlowPane:
+      hgap = 10
+      vgap = 10
+      styleClass += "action-bar"
+      children = Seq(
+        refreshButton,
+        statusComboBox,
+        updateStatusButton
+      )
+
+  // ai-assisted: #45
+  // why: AI helped reorganise planning, reporting and status tasks into clear sections.
+  spacing = 14
+  padding = Insets(24)
+  styleClass += "page"
+
+  VBox.setVgrow(distributionTable, Priority.Always)
 
   children = Seq(
-    new Label("Daily Distribution Plans"),
-    distributionPlanForm,
-    refreshButton,
-    new Label("Distribution Summary"),
+    UiComponents.pageTitle("Distribution Planning"),
+    UiComponents.pageDescription(
+      "Allocate available food to approved requests and track delivery progress."
+    ),
+    UiComponents.formSection(
+      "Create a distribution plan",
+      distributionPlanForm
+    ),
+    UiComponents.sectionTitle("Distribution summary"),
     reportSummaryPane,
-    statusComboBox,
-    updateStatusButton,
+    UiComponents.sectionTitle("Plan records"),
+    planActions,
     distributionTable,
     statusLabel
   )
@@ -217,7 +250,7 @@ class DistributionPlanView(
       s"Cancelled: ${report.cancelledPlans}"
 
     householdsServedLabel.text =
-      s"Unique households served: ${report.householdsServed}"
+      s"Households served: ${report.householdsServed}"
 
   private def showUnavailableReport(): Unit =
     totalPlansLabel.text =
@@ -233,7 +266,7 @@ class DistributionPlanView(
       "Cancelled: -"
 
     householdsServedLabel.text =
-      "Unique households served: -"
+      "Households served: -"
 
   private def updateSelectedStatus(): Unit =
     val selectedPlan =

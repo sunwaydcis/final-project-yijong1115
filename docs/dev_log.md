@@ -209,4 +209,26 @@
 - Found no mutable `var` declarations, mutable collections, direct JavaFX imports or unsafe `Option.get` calls.
 - Confirmed that the source code contained 39 AI-assisted reference tags.
 - Noted that the remaining terminal warnings were produced by Java 25, sbt and Windows symbolic-link handling rather than the application source code.
+- Reviewed distribution creation and found that separate plans could over-allocate the same request or food stock.
+- Added `DistributionAllocationService` and its Derby implementation.
+- Added a serializable Derby transaction boundary for allocation creation.
+- Re-read the selected request and food item inside the transaction instead of trusting stale UI values.
+- Counted existing Planned and Completed plans as active reservations.
+- Validated allocations against remaining household demand and unallocated food quantity.
+- Inserted each valid plan and marked a fully allocated request as Fulfilled within the same transaction.
+- Updated the distribution form to show remaining request quantities and available food quantities.
+- Replaced direct repository plan creation with the atomic allocation workflow.
+- Confirmed that `sbt clean compile` completed successfully after the consistency fix.
+- Reviewed the interface and identified weak visual hierarchy, vertically crowded controls and unclear action grouping.
+- Added a self-contained ScalaFX stylesheet with consistent colours, spacing, typography and control states.
+- Added `UiComponents` to centralise page titles, descriptions, form labels, status messages and button styles.
+- Added a clearer application header, wider sidebar and active navigation highlighting.
+- Wrapped all four screens in responsive scroll panes and increased the default window size.
+- Reorganised inventory, household-request and distribution forms into named collapsible sections.
+- Grouped refresh, update and delete controls into horizontal action bars.
+- Added empty-state messages to tables and the dashboard alert list.
+- Added a confirmation dialog before permanent inventory deletion.
+- Improved form prompts, responsive field widths and status-message readability.
+- Removed all unused imports introduced during the redesign.
+- Confirmed that `sbt clean compile` completed with zero Scala warnings after the usability changes.
 
