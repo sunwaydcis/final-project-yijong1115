@@ -21,6 +21,8 @@ The application records donated food, manages household requests, monitors stock
 Users can:
 
 - Add perishable and shelf-stable food items
+- See each item's food type and automatic storage instruction
+- Use a required use-by date for perishable food or an optional best-before date for shelf-stable food
 - View all stored food items
 - Update an item's available quantity
 - Delete selected food items

@@ -248,4 +248,7 @@
 - Refreshed inventory-based request categories when the Household Requests screen opens.
 - Refreshed distribution records and available allocation choices when the Distribution Plan screen opens.
 - Retained manual Refresh buttons as an optional fallback.
+- Added visible perishable and shelf-stable guidance to the food form.
+- Changed the date label dynamically between required use-by and optional best-before wording.
+- Added Type and Storage columns so subtype-specific behaviour is visible in the inventory table.
 

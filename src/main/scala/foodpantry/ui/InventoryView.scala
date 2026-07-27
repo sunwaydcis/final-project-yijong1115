@@ -50,6 +50,12 @@ class InventoryView(
         )
       columns ++= List(
         textColumn("Name", foodItem => foodItem.name),
+        // ai-assisted: #48
+        // why: AI helped expose subtype behaviour that was previously hidden from users.
+        textColumn(
+          "Type",
+          foodItem => foodType(foodItem)
+        ),
         textColumn(
           "Category",
           foodItem => foodItem.category
@@ -63,11 +69,15 @@ class InventoryView(
           foodItem => foodItem.unit
         ),
         textColumn(
-          "Expiry Date",
+          "Use-by / Best-before",
           foodItem =>
             foodItem.expiryDate
               .map(_.toString)
               .getOrElse("-")
+        ),
+        textColumn(
+          "Storage",
+          foodItem => foodItem.storageInstruction
         )
       )
 
@@ -167,6 +177,14 @@ class InventoryView(
       case Failure(exception) =>
         statusLabel.text =
           s"Unable to load inventory: ${exception.getMessage}"
+
+  private def foodType(foodItem: FoodItem): String =
+    foodItem match
+      case _: PerishableFood =>
+        "Perishable"
+
+      case _: ShelfStableFood =>
+        "Shelf Stable"
 
   private def deleteSelectedItem(): Unit =
     Option(

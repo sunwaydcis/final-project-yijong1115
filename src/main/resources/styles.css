@@ -95,6 +95,13 @@
   -fx-font-weight: bold;
 }
 
+.field-guidance {
+  -fx-text-fill: #52606d;
+  -fx-font-size: 12px;
+  -fx-padding: 2 0 4 0;
+  -fx-wrap-text: true;
+}
+
 .titled-pane > .title {
   -fx-background-color: #eaf4ee;
   -fx-font-weight: bold;

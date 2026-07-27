@@ -9,6 +9,7 @@ import scalafx.geometry.Insets
 import scalafx.scene.control.{
   ComboBox,
   DatePicker,
+  Label,
   TextField
 }
 import scalafx.scene.layout.{
@@ -34,6 +35,13 @@ class FoodItemForm(
       maxWidth = Double.MaxValue
       promptText = "Choose food type"
 
+  // ai-assisted: #48
+  // why: AI helped make each food subtype visibly understandable in the form.
+  private val typeGuidanceLabel =
+    new Label:
+      wrapText = true
+      styleClass += "field-guidance"
+
   private val nameField =
     new TextField:
       promptText = "Example: Rice pack"
@@ -52,8 +60,10 @@ class FoodItemForm(
 
   private val expiryDatePicker =
     new DatePicker:
-      promptText = "Expiry or best-before date"
       maxWidth = Double.MaxValue
+
+  private val expiryDateLabel =
+    UiComponents.fieldLabel("Use-by date (required)")
 
   private val statusLabel =
     UiComponents.statusLabel(
@@ -68,7 +78,12 @@ class FoodItemForm(
     saveFoodItem()
   }
 
+  itemTypeComboBox.onAction = handle {
+    updateTypeGuidance()
+  }
+
   itemTypeComboBox.selectionModel().selectFirst()
+  updateTypeGuidance()
 
   // ai-assisted: #45
   // why: AI helped improve form guidance, spacing and responsive field sizing.
@@ -92,24 +107,53 @@ class FoodItemForm(
 
   add(UiComponents.fieldLabel("Type"), 0, 0)
   add(itemTypeComboBox, 1, 0)
+  add(typeGuidanceLabel, 0, 1, 2, 1)
 
-  add(UiComponents.fieldLabel("Food name"), 0, 1)
-  add(nameField, 1, 1)
+  add(UiComponents.fieldLabel("Food name"), 0, 2)
+  add(nameField, 1, 2)
 
-  add(UiComponents.fieldLabel("Category"), 0, 2)
-  add(categoryField, 1, 2)
+  add(UiComponents.fieldLabel("Category"), 0, 3)
+  add(categoryField, 1, 3)
 
-  add(UiComponents.fieldLabel("Quantity"), 0, 3)
-  add(quantityField, 1, 3)
+  add(UiComponents.fieldLabel("Quantity"), 0, 4)
+  add(quantityField, 1, 4)
 
-  add(UiComponents.fieldLabel("Unit"), 0, 4)
-  add(unitField, 1, 4)
+  add(UiComponents.fieldLabel("Unit"), 0, 5)
+  add(unitField, 1, 5)
 
-  add(UiComponents.fieldLabel("Expiry date"), 0, 5)
-  add(expiryDatePicker, 1, 5)
+  add(expiryDateLabel, 0, 6)
+  add(expiryDatePicker, 1, 6)
 
-  add(addButton, 1, 6)
-  add(statusLabel, 0, 7, 2, 1)
+  add(addButton, 1, 7)
+  add(statusLabel, 0, 8, 2, 1)
+
+  private def updateTypeGuidance(): Unit =
+    itemTypeComboBox.value.value match
+      case "Perishable" =>
+        typeGuidanceLabel.text =
+          "Examples: milk, meat and vegetables. " +
+            "A use-by date is required and the item is kept refrigerated."
+        expiryDateLabel.text =
+          "Use-by date (required)"
+        expiryDatePicker.promptText =
+          "Choose the required use-by date"
+
+      case "Shelf Stable" =>
+        typeGuidanceLabel.text =
+          "Examples: rice, flour and canned food. " +
+            "A best-before date is optional and the item is stored in a cool, dry place."
+        expiryDateLabel.text =
+          "Best-before date (optional)"
+        expiryDatePicker.promptText =
+          "Optional best-before date"
+
+      case _ =>
+        typeGuidanceLabel.text =
+          "Choose a food type to see its storage and date requirements."
+        expiryDateLabel.text =
+          "Expiry information"
+        expiryDatePicker.promptText =
+          "Choose a food type first"
 
   private def saveFoodItem(): Unit =
     createFoodItem() match
