@@ -204,6 +204,9 @@ The database schema is initialised automatically when the application starts.
 7. Review distribution totals and households served.
 8. Open **Dashboard** to review inventory and alert information.
 
+Each screen refreshes its records automatically when opened from the
+sidebar. The visible Refresh buttons remain available for manual reloads.
+
 ## Verification Completed
 
 The project has been checked using:

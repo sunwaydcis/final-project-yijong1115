@@ -52,7 +52,7 @@ class HouseholdRequestForm(
       maxWidth = Double.MaxValue
 
   requestedCategoryComboBox.onShowing = handle {
-    loadCategoryOptions()
+    refreshCategories()
   }
 
   private val requestedQuantityField =
@@ -114,8 +114,6 @@ class HouseholdRequestForm(
 
   add(addButton, 1, 5)
   add(statusLabel, 0, 6, 2, 1)
-
-  loadCategoryOptions()
 
   private def saveRequest(): Unit =
     createRequest() match
@@ -186,7 +184,7 @@ class HouseholdRequestForm(
           s"$fieldName must be greater than zero."
         )
 
-  private def loadCategoryOptions(): Unit =
+  def refreshCategories(): Unit =
     foodItemRepository.findAll() match
       case Success(foodItems) =>
         val selectedCategory =

@@ -241,3 +241,11 @@
 - Added MUnit and three isolated Derby workflow tests for completion, cancellation and legacy migration.
 - Confirmed that all three automated tests passed.
 
+## 2026-07-27
+
+- Added automatic data refreshing whenever a sidebar destination is opened.
+- Refreshed dashboard totals, inventory records and household-request records during navigation.
+- Refreshed inventory-based request categories when the Household Requests screen opens.
+- Refreshed distribution records and available allocation choices when the Distribution Plan screen opens.
+- Retained manual Refresh buttons as an optional fallback.
+

@@ -135,7 +135,9 @@ class HouseholdRequestView(
     statusLabel
   )
 
-  loadRequests()
+  def refreshView(): Unit =
+    loadRequests()
+    householdRequestForm.refreshCategories()
 
   private def textColumn(
       heading: String,

@@ -158,8 +158,12 @@ object MainApp extends JFXApp3:
 
     def showContent(
         contentPane: Node,
-        selectedButton: Button
+        selectedButton: Button,
+        refreshContent: () => Unit
     ): Unit =
+      // ai-assisted: #47
+      // why: AI helped refresh each screen whenever navigation opens it.
+      refreshContent()
       rootPane.center = contentPane
 
       navigationButtons.foreach(
@@ -172,21 +176,34 @@ object MainApp extends JFXApp3:
         "nav-button-active"
 
     dashboardButton.onAction = handle {
-      showContent(dashboardContent, dashboardButton)
+      showContent(
+        dashboardContent,
+        dashboardButton,
+        () => dashboardPane.refreshView()
+      )
     }
 
     inventoryButton.onAction = handle {
-      showContent(inventoryContent, inventoryButton)
+      showContent(
+        inventoryContent,
+        inventoryButton,
+        () => inventoryPane.refreshView()
+      )
     }
 
     requestsButton.onAction = handle {
-      showContent(requestsContent, requestsButton)
+      showContent(
+        requestsContent,
+        requestsButton,
+        () => requestsPane.refreshView()
+      )
     }
 
     distributionButton.onAction = handle {
       showContent(
         distributionContent,
-        distributionButton
+        distributionButton,
+        () => distributionPane.refreshView()
       )
     }
 
@@ -220,7 +237,11 @@ object MainApp extends JFXApp3:
     rootPane.styleClass += "app-root"
     rootPane.top = headerPane
     rootPane.left = navigationPane
-    showContent(dashboardContent, dashboardButton)
+    showContent(
+      dashboardContent,
+      dashboardButton,
+      () => dashboardPane.refreshView()
+    )
 
     val applicationScene =
       new Scene:

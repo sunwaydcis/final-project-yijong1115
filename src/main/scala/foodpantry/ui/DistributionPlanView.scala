@@ -201,7 +201,9 @@ class DistributionPlanView(
     statusLabel
   )
 
-  loadPlans()
+  def refreshView(): Unit =
+    loadPlans()
+    distributionPlanForm.refreshChoices()
 
   private def textColumn(
       heading: String,

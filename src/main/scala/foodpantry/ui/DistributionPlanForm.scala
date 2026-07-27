@@ -143,8 +143,6 @@ class DistributionPlanForm(
 
   add(statusLabel, 0, 5, 2, 1)
 
-  loadChoices()
-
   private def loadChoices(): Unit =
     (
       requestRepository.findAll(),

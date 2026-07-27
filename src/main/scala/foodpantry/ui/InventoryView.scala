@@ -142,7 +142,8 @@ class InventoryView(
     statusLabel
   )
 
-  loadItems()
+  def refreshView(): Unit =
+    loadItems()
 
   private def textColumn(
       heading: String,

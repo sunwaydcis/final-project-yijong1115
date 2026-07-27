@@ -77,7 +77,8 @@ class DashboardView(
     statusLabel
   )
 
-  refreshDashboard()
+  def refreshView(): Unit =
+    refreshDashboard()
 
   private def refreshDashboard(): Unit =
     repository.findAll() match
