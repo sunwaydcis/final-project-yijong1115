@@ -7,6 +7,7 @@ import java.time.LocalDate
 enum RequestStatus:
   case Pending
   case Approved
+  case Rejected
   case Fulfilled
 
 case class HouseholdRequest(

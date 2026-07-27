@@ -2,16 +2,18 @@ package foodpantry.ui
 
 import foodpantry.model.{
   FoodItem,
-  HouseholdRequest,
-  RequestStatus
+  HouseholdRequest
 }
 import foodpantry.repository.Repository
+import foodpantry.service.HouseholdRequestWorkflow
 
 import scalafx.Includes.*
 import scalafx.beans.property.StringProperty
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.control.{
+  Alert,
+  ButtonType,
   Label,
   TableColumn,
   TableView
@@ -101,6 +103,17 @@ class HouseholdRequestView(
     approveSelectedRequest()
   }
 
+  // ai-assisted: #52
+  // why: AI helped add a safe, explicit decision for requests that should not proceed.
+  private val rejectRequestButton =
+    UiComponents.dangerButton(
+      "Reject Selected Request"
+    )
+
+  rejectRequestButton.onAction = handle {
+    rejectSelectedRequest()
+  }
+
   private val requestActions =
     new FlowPane:
       hgap = 10
@@ -108,7 +121,8 @@ class HouseholdRequestView(
       styleClass += "action-bar"
       children = Seq(
         refreshButton,
-        approveRequestButton
+        approveRequestButton,
+        rejectRequestButton
       )
 
   // ai-assisted: #45
@@ -122,7 +136,7 @@ class HouseholdRequestView(
   children = Seq(
     UiComponents.pageTitle("Household Requests"),
     UiComponents.pageDescription(
-      "Register household needs and approve pending requests. " +
+      "Register household needs, then approve or reject pending requests. " +
         "Fulfilled status is assigned automatically after distribution."
     ),
     UiComponents.formSection(
@@ -174,32 +188,69 @@ class HouseholdRequestView(
         statusLabel.text =
           "Select a pending household request before approving."
 
-      case Some(householdRequest)
-          if householdRequest.status ==
-            RequestStatus.Approved =>
-        statusLabel.text =
-          s"${householdRequest.householdName} is already approved."
+      case Some(householdRequest) =>
+        HouseholdRequestWorkflow
+          .approve(householdRequest) match
+          case Right(approvedRequest) =>
+            saveDecision(
+              approvedRequest,
+              "approved and is ready for distribution planning"
+            )
 
-      case Some(householdRequest)
-          if householdRequest.status ==
-            RequestStatus.Fulfilled =>
+          case Left(message) =>
+            statusLabel.text = message
+
+  private def rejectSelectedRequest(): Unit =
+    val selectedRequest =
+      Option(
+        requestTable.selectionModel().selectedItem.value
+      )
+
+    selectedRequest match
+      case None =>
         statusLabel.text =
-          s"${householdRequest.householdName} is already fulfilled."
+          "Select a pending household request before rejecting."
 
       case Some(householdRequest) =>
-        val updatedRequest =
-          householdRequest.copy(
-            status = RequestStatus.Approved
-          )
+        HouseholdRequestWorkflow
+          .reject(householdRequest) match
+          case Right(rejectedRequest) =>
+            if confirmRejection(householdRequest) then
+              saveDecision(
+                rejectedRequest,
+                "rejected and will not enter distribution planning"
+              )
 
-        repository.update(updatedRequest) match
-          case Success(savedRequest) =>
-            loadRequests()
+          case Left(message) =>
+            statusLabel.text = message
 
-            statusLabel.text =
-              s"${savedRequest.householdName} was approved " +
-                "and is ready for distribution planning."
+  private def saveDecision(
+      householdRequest: HouseholdRequest,
+      decisionMessage: String
+  ): Unit =
+    repository.update(householdRequest) match
+      case Success(savedRequest) =>
+        loadRequests()
 
-          case Failure(exception) =>
-            statusLabel.text =
-              s"Unable to approve request: ${exception.getMessage}"
+        statusLabel.text =
+          s"${savedRequest.householdName} was $decisionMessage."
+
+      case Failure(exception) =>
+        statusLabel.text =
+          s"Unable to update request: ${exception.getMessage}"
+
+  private def confirmRejection(
+      householdRequest: HouseholdRequest
+  ): Boolean =
+    val confirmation =
+      new Alert(Alert.AlertType.Confirmation):
+        title = "Reject household request"
+        headerText =
+          s"Reject the request from ${householdRequest.householdName}?"
+        contentText =
+          "The rejected request will not be available for " +
+            "distribution planning. This decision cannot be undone."
+
+    confirmation
+      .showAndWait()
+      .contains(ButtonType.OK)

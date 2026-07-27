@@ -259,4 +259,7 @@
 - Normalised food-category casing so case-only variants no longer appear separately.
 - Applied category normalisation to forms, repositories and existing database mapping.
 - Added regression tests for category casing and repeated whitespace.
+- Added a Rejected household-request status and confirmed rejection action.
+- Limited approval and rejection decisions to Pending requests.
+- Added request-workflow tests for valid and invalid status transitions.
 

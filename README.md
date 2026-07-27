@@ -40,7 +40,8 @@ Users can:
 - Choose requested categories directly from current inventory
 - Record household names and requested quantities
 - View all requests
-- Approve pending requests with one clear action
+- Approve or reject pending requests with clear actions
+- Keep rejected requests out of distribution planning
 - Automatically mark requests Fulfilled after the full quantity is distributed
 - Retain request data after restarting the application
 

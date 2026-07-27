@@ -66,6 +66,9 @@ object HouseholdRequestMapper:
       case "Approved" =>
         Right(RequestStatus.Approved)
 
+      case "Rejected" =>
+        Right(RequestStatus.Rejected)
+
       case "Fulfilled" =>
         Right(RequestStatus.Fulfilled)
 
