@@ -1,6 +1,11 @@
 package foodpantry.repository
 
-import foodpantry.model.{FoodItem, PerishableFood, ShelfStableFood}
+import foodpantry.model.{
+  FoodCategories,
+  FoodItem,
+  PerishableFood,
+  ShelfStableFood
+}
 
 import java.sql.ResultSet
 
@@ -11,7 +16,12 @@ object FoodItemMapper:
   def fromResultSet(resultSet: ResultSet): Either[String, FoodItem] =
     val id = resultSet.getString("ID")
     val name = resultSet.getString("NAME")
-    val category = resultSet.getString("CATEGORY")
+    // ai-assisted: #51
+    // why: AI helped existing category records display with consistent casing.
+    val category =
+      FoodCategories.normalize(
+        resultSet.getString("CATEGORY")
+      )
     val quantity = resultSet.getInt("QUANTITY")
     val unit = resultSet.getString("UNIT")
 

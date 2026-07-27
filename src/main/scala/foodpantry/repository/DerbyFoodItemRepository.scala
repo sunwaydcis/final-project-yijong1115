@@ -1,7 +1,12 @@
 package foodpantry.repository
 
 import foodpantry.database.DatabaseManager
-import foodpantry.model.{FoodItem, PerishableFood, ShelfStableFood}
+import foodpantry.model.{
+  FoodCategories,
+  FoodItem,
+  PerishableFood,
+  ShelfStableFood
+}
 import foodpantry.service.FoodItemValidator
 
 import java.sql.{Date, PreparedStatement, ResultSet, Types}
@@ -40,7 +45,7 @@ class DerbyFoodItemRepository extends Repository[FoodItem]:
     "SELECT * FROM FOOD_ITEMS ORDER BY NAME"
 
   override def add(entity: FoodItem): Try[FoodItem] =
-    validate(entity).flatMap: validItem =>
+    validate(normalizeCategory(entity)).flatMap: validItem =>
       DatabaseManager.withConnection: connection =>
         val statement = connection.prepareStatement(insertSql)
 
@@ -52,7 +57,7 @@ class DerbyFoodItemRepository extends Repository[FoodItem]:
           statement.close()
 
   override def update(entity: FoodItem): Try[FoodItem] =
-    validate(entity).flatMap: validItem =>
+    validate(normalizeCategory(entity)).flatMap: validItem =>
       DatabaseManager.withConnection: connection =>
         val statement = connection.prepareStatement(updateSql)
 
@@ -115,6 +120,25 @@ class DerbyFoodItemRepository extends Repository[FoodItem]:
           resultSet.close()
       finally
         statement.close()
+
+  // ai-assisted: #51
+  // why: AI helped ensure categories are saved consistently outside the form too.
+  private def normalizeCategory(
+      foodItem: FoodItem
+  ): FoodItem =
+    val normalizedCategory =
+      FoodCategories.normalize(foodItem.category)
+
+    foodItem match
+      case perishableFood: PerishableFood =>
+        perishableFood.copy(
+          category = normalizedCategory
+        )
+
+      case shelfStableFood: ShelfStableFood =>
+        shelfStableFood.copy(
+          category = normalizedCategory
+        )
 
   private def validate(foodItem: FoodItem): Try[FoodItem] =
     FoodItemValidator.validate(foodItem) match

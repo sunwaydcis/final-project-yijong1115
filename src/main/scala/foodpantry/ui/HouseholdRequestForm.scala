@@ -1,6 +1,7 @@
 package foodpantry.ui
 
 import foodpantry.model.{
+  FoodCategories,
   FoodItem,
   HouseholdRequest,
   RequestStatus
@@ -193,7 +194,12 @@ class HouseholdRequestForm(
         val categories =
           foodItems
             .filter(foodItem => foodItem.quantity > 0)
-            .map(foodItem => foodItem.category.trim)
+            // ai-assisted: #51
+            // why: AI helped merge category choices that differ only by letter case.
+            .map(
+              foodItem =>
+                FoodCategories.normalize(foodItem.category)
+            )
             .filter(category => category.nonEmpty)
             .distinct
             .sorted

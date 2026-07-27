@@ -23,6 +23,9 @@ Users can:
 - Add perishable and shelf-stable food items
 - See each item's food type and automatic storage instruction
 - Use a required use-by date for perishable food or an optional best-before date for shelf-stable food
+- Select stock units such as packs, bottles, cans, kilograms or litres from a validated list
+- Validate food categories as descriptive text rather than numeric values
+- Normalise category casing so values such as `meat` and `Meat` appear as one category
 - View all stored food items
 - Update an item's available quantity
 - Delete selected food items

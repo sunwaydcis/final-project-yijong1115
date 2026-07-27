@@ -1,7 +1,10 @@
 package foodpantry.repository
 
 import foodpantry.database.DatabaseManager
-import foodpantry.model.HouseholdRequest
+import foodpantry.model.{
+  FoodCategories,
+  HouseholdRequest
+}
 import foodpantry.service.HouseholdRequestValidator
 
 import java.sql.{Date, PreparedStatement, ResultSet}
@@ -56,7 +59,7 @@ class DerbyHouseholdRequestRepository
   override def add(
       entity: HouseholdRequest
   ): Try[HouseholdRequest] =
-    validate(entity).flatMap: validRequest =>
+    validate(normalizeCategory(entity)).flatMap: validRequest =>
       DatabaseManager.withConnection: connection =>
         val statement =
           connection.prepareStatement(insertSql)
@@ -71,7 +74,7 @@ class DerbyHouseholdRequestRepository
   override def update(
       entity: HouseholdRequest
   ): Try[HouseholdRequest] =
-    validate(entity).flatMap: validRequest =>
+    validate(normalizeCategory(entity)).flatMap: validRequest =>
       DatabaseManager.withConnection: connection =>
         val statement =
           connection.prepareStatement(updateSql)
@@ -143,6 +146,16 @@ class DerbyHouseholdRequestRepository
           resultSet.close()
       finally
         statement.close()
+
+  private def normalizeCategory(
+      householdRequest: HouseholdRequest
+  ): HouseholdRequest =
+    householdRequest.copy(
+      requestedCategory =
+        FoodCategories.normalize(
+          householdRequest.requestedCategory
+        )
+    )
 
   private def validate(
       householdRequest: HouseholdRequest

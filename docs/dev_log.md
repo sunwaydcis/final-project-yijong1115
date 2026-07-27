@@ -251,4 +251,12 @@
 - Added visible perishable and shelf-stable guidance to the food form.
 - Changed the date label dynamically between required use-by and optional best-before wording.
 - Added Type and Storage columns so subtype-specific behaviour is visible in the inventory table.
+- Replaced free-text food units with a fixed inventory-unit dropdown.
+- Added shared validation that rejects numeric and unsupported food units.
+- Added tests covering accepted and rejected food-unit values.
+- Added food-category validation that rejects numerical or malformed categories.
+- Added tests for valid descriptive categories and invalid numeric categories.
+- Normalised food-category casing so case-only variants no longer appear separately.
+- Applied category normalisation to forms, repositories and existing database mapping.
+- Added regression tests for category casing and repeated whitespace.
 

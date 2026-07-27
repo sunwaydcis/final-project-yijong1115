@@ -1,6 +1,12 @@
 package foodpantry.ui
 
-import foodpantry.model.{FoodItem, PerishableFood, ShelfStableFood}
+import foodpantry.model.{
+  FoodItem,
+  FoodCategories,
+  FoodUnits,
+  PerishableFood,
+  ShelfStableFood
+}
 import foodpantry.repository.Repository
 
 import scalafx.Includes.*
@@ -54,9 +60,14 @@ class FoodItemForm(
     new TextField:
       promptText = "Whole number"
 
-  private val unitField =
-    new TextField:
-      promptText = "Example: packs or cartons"
+  // ai-assisted: #49
+  // why: AI helped prevent invalid unit typing with a guided fixed choice.
+  private val unitComboBox =
+    new ComboBox[String](
+      ObservableBuffer(FoodUnits.choices*)
+    ):
+      promptText = "Choose how this food is counted"
+      maxWidth = Double.MaxValue
 
   private val expiryDatePicker =
     new DatePicker:
@@ -119,7 +130,7 @@ class FoodItemForm(
   add(quantityField, 1, 4)
 
   add(UiComponents.fieldLabel("Unit"), 0, 5)
-  add(unitField, 1, 5)
+  add(unitComboBox, 1, 5)
 
   add(expiryDateLabel, 0, 6)
   add(expiryDatePicker, 1, 6)
@@ -173,51 +184,68 @@ class FoodItemForm(
               s"Unable to add item: ${exception.getMessage}"
 
   private def createFoodItem(): Either[String, FoodItem] =
-    Try(quantityField.text.value.trim.toInt)
-      .toEither
-      .left
-      .map(_ => "Quantity must be a whole number.")
-      .flatMap: quantity =>
-        val id = UUID.randomUUID().toString
-        val name = nameField.text.value.trim
-        val category = categoryField.text.value.trim
-        val unit = unitField.text.value.trim
+    for
+      quantity <-
+        Try(quantityField.text.value.trim.toInt)
+          .toEither
+          .left
+          .map(_ => "Quantity must be a whole number.")
 
-        itemTypeComboBox.value.value match
-          case "Perishable" =>
-            Option(expiryDatePicker.value.value)
-              .toRight(
-                "Perishable food requires an expiry date."
-              )
-              .map: expiryDate =>
-                PerishableFood(
-                  id,
-                  name,
-                  category,
-                  quantity,
-                  unit,
-                  expiryDate
-                )
+      unit <-
+        Option(unitComboBox.value.value)
+          .toRight("Choose a food unit.")
 
-          case "Shelf Stable" =>
-            Right(
-              ShelfStableFood(
-                id,
-                name,
-                category,
-                quantity,
-                unit,
-                Option(expiryDatePicker.value.value)
-              )
+      foodItem <-
+        createFoodItemForType(quantity, unit)
+    yield
+      foodItem
+
+  private def createFoodItemForType(
+      quantity: Int,
+      unit: String
+  ): Either[String, FoodItem] =
+    val id = UUID.randomUUID().toString
+    val name = nameField.text.value.trim
+    val category =
+      FoodCategories.normalize(categoryField.text.value)
+
+    itemTypeComboBox.value.value match
+      case "Perishable" =>
+        Option(expiryDatePicker.value.value)
+          .toRight(
+            "Perishable food requires an expiry date."
+          )
+          .map: expiryDate =>
+            PerishableFood(
+              id,
+              name,
+              category,
+              quantity,
+              unit,
+              expiryDate
             )
 
-          case _ =>
-            Left("Please select a food item type.")
+      case "Shelf Stable" =>
+        Right(
+          ShelfStableFood(
+            id,
+            name,
+            category,
+            quantity,
+            unit,
+            Option(expiryDatePicker.value.value)
+          )
+        )
+
+      case _ =>
+        Left("Please select a food item type.")
 
   private def clearForm(): Unit =
     nameField.clear()
     categoryField.clear()
     quantityField.clear()
-    unitField.clear()
+    unitComboBox
+      .selectionModel()
+      .clearSelection()
     expiryDatePicker.value = null
     itemTypeComboBox.selectionModel().selectFirst()

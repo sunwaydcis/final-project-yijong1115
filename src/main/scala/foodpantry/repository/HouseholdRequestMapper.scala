@@ -1,6 +1,7 @@
 package foodpantry.repository
 
 import foodpantry.model.{
+  FoodCategories,
   HouseholdRequest,
   RequestStatus
 }
@@ -24,7 +25,9 @@ object HouseholdRequestMapper:
       resultSet.getInt("HOUSEHOLD_SIZE")
 
     val requestedCategory =
-      resultSet.getString("REQUESTED_CATEGORY")
+      FoodCategories.normalize(
+        resultSet.getString("REQUESTED_CATEGORY")
+      )
 
     val requestedQuantity =
       resultSet.getInt("REQUESTED_QUANTITY")
