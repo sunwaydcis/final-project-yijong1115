@@ -29,7 +29,7 @@ Users can:
 - View all stored food items
 - Update an item's available quantity
 - Delete selected food items
-- Store expiry dates, units, categories and low-stock thresholds
+- Store expiry dates, units and categories
 - Retain inventory data after restarting the application
 
 ### 2. Household and Food Request Management
@@ -49,10 +49,10 @@ Users can:
 
 The dashboard calculates and displays:
 
-- Total inventory items
-- Total inventory quantity
-- Low-stock alerts
-- Food items approaching expiry
+- Total food records
+- Low-stock item count
+- Expiry-alert item count
+- Unique items requiring attention
 
 The monitoring logic uses immutable collection operations and polymorphic food-item behaviour.
 
@@ -67,7 +67,7 @@ Users can:
 - Reduce inventory automatically when a distribution is completed
 - Release reserved stock when a distribution is cancelled
 - View totals for each distribution status
-- View the number of unique households served by completed plans
+- View the number of requests receiving completed distributions
 - Retain distribution plans and status changes after restarting
 
 ## Object-Oriented Design
@@ -129,18 +129,30 @@ Project_23051725/
 |-- project/
 |   `-- build.properties
 |-- src/
-|   `-- main/
+|   |-- main/
+|   |   |-- resources/
+|   |   |   `-- styles.css
+|   |   `-- scala/
+|   |       `-- foodpantry/
+|   |           |-- database/
+|   |           |-- model/
+|   |           |-- repository/
+|   |           |-- service/
+|   |           |-- ui/
+|   |           `-- MainApp.scala
+|   `-- test/
 |       `-- scala/
 |           `-- foodpantry/
-|               |-- database/
-|               |-- model/
-|               |-- repository/
-|               |-- service/
-|               |-- ui/
-|               `-- MainApp.scala
+|               |-- DistributionReportServiceSuite.scala
+|               |-- DistributionWorkflowSuite.scala
+|               |-- FoodCategoriesSuite.scala
+|               |-- FoodItemValidatorSuite.scala
+|               |-- HouseholdRequestWorkflowSuite.scala
+|               `-- InventoryDashboardSummaryServiceSuite.scala
 |-- build.sbt
 |-- README.md
 `-- submission_manifest.md
+```
 
 ## Database Storage
 
@@ -204,10 +216,10 @@ The database schema is initialised automatically when the application starts.
 1. Open **Food Inventory** and add donated food items.
 2. Open **Household Requests** and create a household request.
 3. Select the request and click **Approve Selected Request**.
-4. Open **Distribution Plan** and refresh the available choices.
+4. Open **Distribution Plan**; its available choices refresh automatically.
 5. Create a distribution plan for the approved request.
 6. Select the plan and click **Complete Selected Plan** or **Cancel Selected Plan**.
-7. Review distribution totals and households served.
+7. Review distribution totals and requests served.
 8. Open **Dashboard** to review inventory and alert information.
 
 Each screen refreshes its records automatically when opened from the
@@ -228,7 +240,8 @@ The source-code audit confirmed:
 - No mutable collection imports
 - No direct JavaFX imports
 - No unsafe `Option.get` calls
-- Automated tests for completion, cancellation and legacy stock migration
+- 16 automated tests covering validation, normalisation, request decisions,
+  dashboard summaries, distribution reporting and stock workflows
 - Persistence of inventory, household requests and distribution plans after restart
 
 The final submission should also be tested using Java 21.
@@ -241,7 +254,7 @@ The AI interaction log records prompts, suggestions, student decisions and affec
 
 Current recorded evidence includes:
 
-- 46 entries in `ai/interaction_log.md`
+- 53 entries in `ai/interaction_log.md`
 - AI-assisted source references linked to matching log entries
 
 Full details are available in:
@@ -260,6 +273,5 @@ Before final submission:
 - Complete the AI reflection
 - Create and add the UML diagram
 - Record the demonstration video
-- Add at least one more genuine development-log date
 - Test the final project using Java 21
 - Update `submission_manifest.md`

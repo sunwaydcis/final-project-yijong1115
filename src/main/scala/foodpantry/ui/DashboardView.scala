@@ -2,7 +2,10 @@ package foodpantry.ui
 
 import foodpantry.model.FoodItem
 import foodpantry.repository.Repository
-import foodpantry.service.InventoryMonitoringService
+import foodpantry.service.{
+  InventoryDashboardSummaryService,
+  InventoryMonitoringService
+}
 
 import scalafx.Includes.*
 import scalafx.collections.ObservableBuffer
@@ -23,8 +26,18 @@ class DashboardView(
     new Label("Food records: 0"):
       styleClass += "summary-card"
 
-  private val totalQuantityLabel =
-    new Label("Total quantity: 0"):
+  // ai-assisted: #53
+  // why: AI helped replace the mixed-unit total with clear inventory attention counts.
+  private val lowStockItemsLabel =
+    new Label("Low-stock items: 0"):
+      styleClass += "summary-card"
+
+  private val expiryAlertItemsLabel =
+    new Label("Expiry-alert items: 0"):
+      styleClass += "summary-card"
+
+  private val attentionItemsLabel =
+    new Label("Items requiring attention: 0"):
       styleClass += "summary-card"
 
   private val summaryPane =
@@ -33,7 +46,9 @@ class DashboardView(
       vgap = 10
       children = Seq(
         totalItemsLabel,
-        totalQuantityLabel
+        lowStockItemsLabel,
+        expiryAlertItemsLabel,
+        attentionItemsLabel
       )
 
   private val alertMessages =
@@ -68,7 +83,7 @@ class DashboardView(
   children = Seq(
     UiComponents.pageTitle("Dashboard"),
     UiComponents.pageDescription(
-      "Review current stock totals and items that need attention."
+      "Review current inventory records and items that need attention."
     ),
     summaryPane,
     UiComponents.sectionTitle("Inventory alerts"),
@@ -86,16 +101,24 @@ class DashboardView(
         val alerts =
           monitoringService.findAlerts(foodItems)
 
-        val totalQuantity =
-          foodItems
-            .map(foodItem => foodItem.quantity)
-            .sum
+        val summary =
+          InventoryDashboardSummaryService.generate(
+            foodItems,
+            alerts
+          )
 
         totalItemsLabel.text =
-          s"Food records: ${foodItems.size}"
+          s"Food records: ${summary.foodRecords}"
 
-        totalQuantityLabel.text =
-          s"Total quantity: $totalQuantity"
+        lowStockItemsLabel.text =
+          s"Low-stock items: ${summary.lowStockItems}"
+
+        expiryAlertItemsLabel.text =
+          s"Expiry-alert items: ${summary.expiryAlertItems}"
+
+        attentionItemsLabel.text =
+          "Items requiring attention: " +
+            summary.itemsRequiringAttention
 
         alertMessages.clear()
 

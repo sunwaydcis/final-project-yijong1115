@@ -64,8 +64,10 @@ class DistributionPlanView(
     new Label("Cancelled: 0"):
       styleClass += "summary-card"
 
-  private val householdsServedLabel =
-    new Label("Households served: 0"):
+  // ai-assisted: #53
+  // why: AI helped label this request-based metric accurately for users.
+  private val requestsServedLabel =
+    new Label("Requests served: 0"):
       styleClass += "summary-card"
 
   // ai-assisted: #43
@@ -82,7 +84,7 @@ class DistributionPlanView(
         plannedPlansLabel,
         completedPlansLabel,
         cancelledPlansLabel,
-        householdsServedLabel
+        requestsServedLabel
       )
 
   private val distributionTable =
@@ -254,8 +256,8 @@ class DistributionPlanView(
     cancelledPlansLabel.text =
       s"Cancelled: ${report.cancelledPlans}"
 
-    householdsServedLabel.text =
-      s"Households served: ${report.householdsServed}"
+    requestsServedLabel.text =
+      s"Requests served: ${report.requestsServed}"
 
   private def showUnavailableReport(): Unit =
     totalPlansLabel.text =
@@ -270,8 +272,8 @@ class DistributionPlanView(
     cancelledPlansLabel.text =
       "Cancelled: -"
 
-    householdsServedLabel.text =
-      "Households served: -"
+    requestsServedLabel.text =
+      "Requests served: -"
 
   private def completeSelectedPlan(): Unit =
     selectedPlan() match

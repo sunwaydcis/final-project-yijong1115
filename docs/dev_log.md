@@ -263,3 +263,12 @@
 - Limited approval and rejection decisions to Pending requests.
 - Added request-workflow tests for valid and invalid status transitions.
 
+## 2026-08-04
+
+- Corrected the distribution report so its distinct request-ID count is labelled as requests served rather than unique households served.
+- Added a focused report test covering repeated plans for one request, different requests with the same household name and non-completed statuses.
+- Removed the dashboard total that combined incompatible units such as packs, bottles and kilograms.
+- Added an immutable dashboard-summary service for food-record, low-stock, expiry-alert and unique-attention item counts.
+- Added dashboard-summary tests, including an item with both low-stock and expiry alerts to prevent double-counting.
+- Corrected the README code block, project structure, implemented-feature descriptions, test coverage and AI evidence count.
+

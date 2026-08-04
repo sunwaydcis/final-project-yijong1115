@@ -10,7 +10,7 @@ case class DistributionReport(
     plannedPlans: Int,
     completedPlans: Int,
     cancelledPlans: Int,
-    householdsServed: Int
+    requestsServed: Int
 )
 
 // ai-assisted: #41
@@ -31,7 +31,9 @@ object DistributionReportService:
           firstCount + secondCount
       )
 
-    val householdsServed =
+    // ai-assisted: #53
+    // why: AI helped rename this request-based count so the report does not overstate households served.
+    val requestsServed =
       distributionPlans
         .filter(
           distributionPlan =>
@@ -62,5 +64,5 @@ object DistributionReportService:
           DistributionStatus.Cancelled,
           0
         ),
-      householdsServed = householdsServed
+      requestsServed = requestsServed
     )
