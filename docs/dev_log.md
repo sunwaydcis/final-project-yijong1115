@@ -271,4 +271,12 @@
 - Added an immutable dashboard-summary service for food-record, low-stock, expiry-alert and unique-attention item counts.
 - Added dashboard-summary tests, including an item with both low-stock and expiry alerts to prevent double-counting.
 - Corrected the README code block, project structure, implemented-feature descriptions, test coverage and AI evidence count.
+- Measured and updated the submission manifest with the current classes, AI tags, interaction entries, development dates, reflection word counts, compilation status and feature-verification result.
+
+## 2026-08-05
+
+- Completed the 480-word personal reflection after correcting repeated workflow wording.
+- Drafted a 445-word AI integration reflection based on the documented ChatGPT and Codex interactions.
+- Discussed useful AI contributions, incorrect early logic, student decision-making, testing and responsible disclosure.
+- Added Codex to the AI use declaration and updated the submission evidence counts.
 

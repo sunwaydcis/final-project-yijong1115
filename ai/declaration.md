@@ -13,6 +13,7 @@ I, Gan Yi Jong, declare that:
 ## AI Tools Used
 
 - ChatGPT
+- Codex
 
 Student signature: Gan Yi Jong
 
