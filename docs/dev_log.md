@@ -280,3 +280,14 @@
 - Discussed useful AI contributions, incorrect early logic, student decision-making, testing and responsible disclosure.
 - Added Codex to the AI use declaration and updated the submission evidence counts.
 
+## 2026-08-06
+
+- Created a UML class diagram for the Food Pantry Inventory and Demand Management System using draw.io.
+- Included 14 classes or traits and two enumerations covering the domain models, inventory-alert hierarchy, monitoring service and generic repositories.
+- Documented inheritance from `Entity`, subtype polymorphism for food and alert types, and the bounded `Repository[T <: Entity]` relationship.
+- Connected the concrete Derby repositories to their correct model types and showed distribution, status and monitoring dependencies.
+- Reviewed and corrected class names, data types, repository type labels and the diagram title.
+- Exported the completed diagram as `docs/UML.png` and updated the submission checklist and README project structure.
+- Replaced the citations placeholder with verified sources, licences, purposes and affected files for Scala, ScalaFX, Apache Derby, MUnit and diagrams.net.
+- Clarified that AI assistance is disclosed separately and marked the citations requirement complete.
+

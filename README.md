@@ -122,6 +122,7 @@ Project_23051725/
 |   |-- declaration.md
 |   `-- interaction_log.md
 |-- docs/
+|   |-- UML.png
 |   |-- ai_reflection.md
 |   |-- citations.md
 |   |-- dev_log.md
@@ -254,7 +255,7 @@ The AI interaction log records prompts, suggestions, student decisions and affec
 
 Current recorded evidence includes:
 
-- 55 entries in `ai/interaction_log.md`
+- 57 entries in `ai/interaction_log.md`
 - AI-assisted source references linked to matching log entries
 
 Full details are available in:
