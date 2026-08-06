@@ -2,13 +2,14 @@
 
 I, Gan Yi Jong, declare that:
 
-1. I used AI tools as permitted by the PRG2104 Tier C policy.
-2. Every significant AI interaction that influenced my project will be recorded in `ai/interaction_log.md`.
-3. I can explain every line of code submitted for this project.
-4. AI-assisted code blocks will be tagged using `// ai-assisted: #N`.
-5. Each AI-assisted tag will include a nearby `// why:` explanation.
-6. I did not consult or reuse a senior student's previous submission.
-7. I understand that the final declaration must be signed before submission.
+1. I used AI tools as permitted under the PRG2104 Tier C policy.
+2. Every significant AI interaction that influenced my project was recorded in `ai/interaction_log.md`.
+3. I reviewed, understood, compiled and tested the AI-assisted work before accepting it.
+4. AI-assisted code sections were tagged using `// ai-assisted: #N`.
+5. Each AI-assisted tag includes a nearby `// why:` explanation.
+6. I can explain the code and design decisions submitted for this project.
+7. I did not consult, copy or reuse another student's previous submission.
+8. I accept responsibility for the correctness, originality and final contents of this submission.
 
 ## AI Tools Used
 
@@ -17,4 +18,4 @@ I, Gan Yi Jong, declare that:
 
 Student signature: Gan Yi Jong
 
-Date: 2026-07-22
+Date: 2026-08-06
