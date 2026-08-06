@@ -290,4 +290,5 @@
 - Exported the completed diagram as `docs/UML.png` and updated the submission checklist and README project structure.
 - Replaced the citations placeholder with verified sources, licences, purposes and affected files for Scala, ScalaFX, Apache Derby, MUnit and diagrams.net.
 - Clarified that AI assistance is disclosed separately and marked the citations requirement complete.
+- Transferred all 58 recorded AI interactions into Template 2 of a separate Word-document copy, added the Template 3 tool list and verified that every table field was populated.
 
