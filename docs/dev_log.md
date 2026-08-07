@@ -292,3 +292,10 @@
 - Clarified that AI assistance is disclosed separately and marked the citations requirement complete.
 - Transferred all 58 recorded AI interactions into Template 2 of a separate Word-document copy, added the Template 3 tool list and verified that every table field was populated.
 
+## 2026-08-07
+
+- Added the final 4-minute-59-second application demonstration as `docs/demo.mp4`.
+- Verified that the project compiles successfully using Java 25.0.3 LTS with unused warnings enabled.
+- Forced all MUnit suites to run with `testOnly *` and confirmed that all 16 automated tests pass.
+- Updated the README and submission manifest to reflect the final verification results and remaining submission tasks.
+

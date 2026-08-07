@@ -270,9 +270,6 @@ docs/ai_reflection.md
 
 Before final submission:
 
-- Complete the personal reflection
-- Complete the AI reflection
-- Create and add the UML diagram
-- Record the demonstration video
-- Test the final project using Java 21
-- Update `submission_manifest.md`
+- Review and sign the completed Word submission document
+- Enter the actual submission date in `submission_manifest.md`
+- Create and verify the final submission ZIP

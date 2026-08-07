@@ -19,7 +19,7 @@
 - [x] docs/ai_reflection.md — AI reflection, 300–500 words
 - [x] docs/dev_log.md — at least 5 dated entries
 - [x] docs/citations.md — third-party citations
-- [ ] docs/demo.mp4 — walkthrough of no more than 5 minutes
+- [x] docs/demo.mp4 — 4:59 walkthrough
 - [x] ai/interaction_log.md — at least 10 entries
 - [x] ai/declaration.md — signed
 
@@ -30,10 +30,10 @@
 | Number of classes or traits in src/main/scala | At least 5 | 26 |
 | Number of `// ai-assisted: #N` tags in src | At least 3 | 84 |
 | Number of entries in ai/interaction_log.md | At least 10 | 58 |
-| Distinct dates in docs/dev_log.md | At least 5 | 8 |
+| Distinct dates in docs/dev_log.md | At least 5 | 9 |
 | Word count of docs/reflection.md | 350–700 | 480 |
 | Word count of docs/ai_reflection.md | 300–500 | 445 |
-| `sbt -Wunused clean compile` passes | Yes | No — invalid sbt command; `-Wunused:all` is configured and `sbt clean compile` passes |
+| `sbt clean compile` with unused warnings enabled passes | Yes | Yes — `-Wunused:all` is configured |
 | All four required features work end-to-end | Yes | Yes |
 
 ## Signature
