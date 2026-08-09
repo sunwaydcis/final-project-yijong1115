@@ -4,7 +4,7 @@
 **Student ID:** 23051725  
 **Project title:** Food Pantry Inventory and Demand Management System  
 **Theme:** SDG 1 — No Poverty / Sub-domain: Food Pantry Inventory & Demand  
-**Date submitted:** To be completed
+**Date submitted:** 2026-08-09
 
 ## File Checklist
 
@@ -32,7 +32,7 @@
 | Number of entries in ai/interaction_log.md | At least 10 | 58 |
 | Distinct dates in docs/dev_log.md | At least 5 | 9 |
 | Word count of docs/reflection.md | 350–700 | 480 |
-| Word count of docs/ai_reflection.md | 300–500 | 445 |
+| Word count of docs/ai_reflection.md | 300–500 | 476 |
 | `sbt clean compile` with unused warnings enabled passes | Yes | Yes — `-Wunused:all` is configured |
 | All four required features work end-to-end | Yes | Yes |
 
