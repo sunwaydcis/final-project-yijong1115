@@ -266,10 +266,6 @@ ai/declaration.md
 docs/ai_reflection.md
 ```
 
-## Submission Items Still to Complete
+## Submission Status
 
-Before final submission:
-
-- Review and sign the completed Word submission document
-- Enter the actual submission date in `submission_manifest.md`
-- Create and verify the final submission ZIP
+All required submission documents and project files were completed and verified on 9 August 2026.
